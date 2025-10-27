@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, User, Mail, Phone, MapPin, Calendar, Globe, Camera, Edit2, Save, Package, ShoppingCart, DollarSign, Truck, CheckCircle, Clock } from 'lucide-react';
+import { X, User, Mail, Phone, MapPin, Calendar, Globe, Camera, Edit2, Save, Package, ShoppingCart, DollarSign, Truck, CheckCircle, Clock, TrendingUp } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card } from './ui/card';
