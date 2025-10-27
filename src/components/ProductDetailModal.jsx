@@ -211,7 +211,23 @@ const ProductDetailModal = ({ product, onClose, onAddToCart, onToggleWishlist, i
                   <Heart size={20} className={isInWishlist ? 'text-pink-500 fill-pink-500' : 'text-gray-600'} />
                   {isInWishlist ? 'Retire nan Wishlist' : 'Ajoute nan Wishlist'}
                 </button>
-                <button className="flex-1 border-2 border-gray-300 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+                <button 
+                  onClick={() => {
+                    if (navigator.share) {
+                      navigator.share({
+                        title: product.name,
+                        text: product.description || `Gade ${product.name}`,
+                        url: window.location.href
+                      }).catch(err => console.log('Error sharing:', err));
+                    } else {
+                      // Fallback: copy to clipboard
+                      navigator.clipboard.writeText(window.location.href).then(() => {
+                        alert('Lyen kopye nan clipboard!');
+                      });
+                    }
+                  }}
+                  className="flex-1 border-2 border-gray-300 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                >
                   <Share2 size={20} />
                   Pataje
                 </button>

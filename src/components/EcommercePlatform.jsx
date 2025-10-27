@@ -13,6 +13,9 @@ import { supabase } from '../lib/supabase';
 import ProductDetailModal from './ProductDetailModal';
 import { ModernClientStore } from './ModernClientStore';
 import { ModernAdminDashboard } from './ModernAdminDashboard';
+import ReturnRefundPolicy from './ReturnRefundPolicy';
+import AboutUsPage from './AboutUsPage';
+import { Shield } from 'lucide-react';
 
 const EcommercePlatform = () => {
   // Détecte automatiquement si on est sur admin.localhost
@@ -32,6 +35,8 @@ const EcommercePlatform = () => {
   const [showCart, setShowCart] = useState(false);
   const [showWishlist, setShowWishlist] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
+  const [showReturnPolicy, setShowReturnPolicy] = useState(false);
+  const [showAboutUs, setShowAboutUs] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponError, setCouponError] = useState('');
@@ -871,25 +876,26 @@ const EcommercePlatform = () => {
   const ClientStore = () => {
     return (
       <>
-        <ModernClientStore
-          storeName={storeName}
-          flashSaleText={flashSaleText}
-          cartItems={cartItems}
-          wishlist={wishlist}
-          products={products}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          currency={currency}
-          setCurrency={setCurrency}
-          addToCart={addToCart}
-          toggleWishlist={toggleWishlist}
-          setShowCart={setShowCart}
-          setShowWishlist={setShowWishlist}
-          setSelectedProduct={setSelectedProduct}
-          setShowProductDetail={setShowProductDetail}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-        />
+      <ModernClientStore
+        storeName={storeName}
+        flashSaleText={flashSaleText}
+        cartItems={cartItems}
+        wishlist={wishlist}
+        products={products}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        currency={currency}
+        setCurrency={setCurrency}
+        addToCart={addToCart}
+        toggleWishlist={toggleWishlist}
+        setShowCart={setShowCart}
+        setShowWishlist={setShowWishlist}
+        setSelectedProduct={setSelectedProduct}
+        setShowProductDetail={setShowProductDetail}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
+        setShowAboutUs={setShowAboutUs}
+      />
         
         {/* Cart Sidebar */}
         {showCart && (
@@ -1216,20 +1222,32 @@ const EcommercePlatform = () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-3 pt-4">
-                  <button
-                    onClick={() => setShowCheckout(false)}
-                    className="flex-1 px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    Retounen
-                  </button>
+                <div className="space-y-3 pt-4">
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setShowCheckout(false);
+                        setShowReturnPolicy(true);
+                      }}
+                      className="flex-1 px-6 py-3 border-2 border-blue-500 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors flex items-center justify-center gap-2 font-semibold"
+                    >
+                      <Shield size={18} />
+                      Politik Retounen ak Rebay
+                    </button>
+                    <button
+                      onClick={() => setShowCheckout(false)}
+                      className="flex-1 px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      Retounen nan Panye
+                    </button>
+                  </div>
                   <button
                     onClick={() => {
                       alert('Kòmand lan te soumèt avèk siksè! Nou pral kontakte ou byento.');
                       setCartItems([]);
                       setShowCheckout(false);
                     }}
-                    className="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white py-3 rounded-lg font-semibold hover:shadow-lg transition-shadow flex items-center justify-center gap-2"
+                    className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-3 rounded-lg font-semibold hover:shadow-lg transition-shadow flex items-center justify-center gap-2"
                   >
                     <CheckCircle size={20} />
                     Konfime Kòmand
@@ -1238,6 +1256,25 @@ const EcommercePlatform = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Return & Refund Policy Page */}
+        {showReturnPolicy && (
+          <ReturnRefundPolicy
+            onBack={() => {
+              setShowReturnPolicy(false);
+              setShowCheckout(true);
+            }}
+          />
+        )}
+
+        {/* About Us Page */}
+        {showAboutUs && (
+          <AboutUsPage
+            onBack={() => {
+              setShowAboutUs(false);
+            }}
+          />
         )}
       </>
     );

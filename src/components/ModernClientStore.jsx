@@ -25,6 +25,7 @@ export const ModernClientStore = ({
   setShowProductDetail,
   selectedCategory,
   setSelectedCategory,
+  setShowAboutUs,
 }) => {
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -285,7 +286,7 @@ export const ModernClientStore = ({
       {/* Footer */}
       <footer className="bg-muted mt-12 py-8 border-t border-border">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-8 mb-8">
             <div>
               <h3 className="font-bold mb-4">Èd</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
@@ -303,14 +304,6 @@ export const ModernClientStore = ({
               </ul>
             </div>
             <div>
-              <h3 className="font-bold mb-4">Enfòmasyon</h3>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground">Konsènan Nou</a></li>
-                <li><a href="#" className="hover:text-foreground">Kondisyon</a></li>
-                <li><a href="#" className="hover:text-foreground">Konfidansyalite</a></li>
-              </ul>
-            </div>
-            <div>
               <h3 className="font-bold mb-4">Swiv Nou</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><a href="#" className="hover:text-foreground">Facebook</a></li>
@@ -319,6 +312,28 @@ export const ModernClientStore = ({
               </ul>
             </div>
           </div>
+          
+          {/* Quick Links Row */}
+          <div className="border-t border-border pt-6 mb-6">
+            <div className="flex flex-wrap justify-center gap-4">
+              <button
+                onClick={() => setShowAboutUs(true)}
+                className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:underline transition-colors"
+              >
+                Konsènan Nou
+              </button>
+              <a href="#" className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:underline transition-colors">
+                Kondisyon
+              </a>
+              <a href="#" className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:underline transition-colors">
+                Konfidansyalite
+              </a>
+              <a href="#" className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:underline transition-colors">
+                Politik Retounen
+              </a>
+            </div>
+          </div>
+          
           <div className="text-center text-sm text-muted-foreground border-t border-border pt-8">
             <p>© 2024 {storeName}. Tout dwa rezève.</p>
           </div>
