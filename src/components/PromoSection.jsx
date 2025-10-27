@@ -19,7 +19,21 @@ export const PromoBanner = () => {
             <p className="text-lg opacity-90">
               Pran rabè jiska 70% sou tout pwodui yo
             </p>
-            <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100 font-bold">
+            <Button 
+              size="lg" 
+              className="bg-white text-orange-600 hover:bg-gray-100 font-bold"
+              onClick={() => {
+                const dealsSection = document.getElementById('lightning-deals');
+                if (dealsSection) {
+                  dealsSection.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                  const productsSection = document.getElementById('all-products');
+                  if (productsSection) {
+                    productsSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }
+              }}
+            >
               ACHTE KOUNYE A
               <ChevronRight className="ml-2" size={20} />
             </Button>

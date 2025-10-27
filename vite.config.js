@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3000,
+    host: '0.0.0.0', // Permet d'accepter les connexions de n'importe quel sous-domaine
     open: true
   },
   resolve: {

@@ -17,8 +17,12 @@ export const ModernHeader = ({
   setSearchQuery,
   currency,
   onCurrencyChange,
+  selectedCategory = 'Tout',
+  onCategoryChange,
 }) => {
   const { getPriceString } = useCurrency();
+  
+  const categories = ['Tout', 'Electronics', 'Fashion', 'Soulye', 'Kay', 'Bote', 'Espò'];
 
   return (
     <header className="sticky top-0 z-50 bg-background border-b border-border shadow-sm">
@@ -127,12 +131,26 @@ export const ModernHeader = ({
       <div className="border-t border-border bg-muted/30">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center gap-4 overflow-x-auto no-scrollbar">
-            {['Tout', 'Electronics', 'Fashion', 'Soulye', 'Kay', 'Bote', 'Espò'].map((category) => (
+            {categories.map((category) => (
               <Button
                 key={category}
-                variant="ghost"
+                variant={selectedCategory === category ? "default" : "ghost"}
                 size="sm"
-                className="whitespace-nowrap hover:text-primary"
+                className={`whitespace-nowrap transition-colors ${
+                  selectedCategory === category 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'hover:text-primary hover:bg-accent'
+                }`}
+                onClick={() => {
+                  onCategoryChange(category === 'Tout' ? 'all' : category);
+                  // Scroll to products section
+                  const productsSection = document.getElementById('all-products');
+                  if (productsSection) {
+                    setTimeout(() => {
+                      productsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
+                  }
+                }}
               >
                 {category}
               </Button>

@@ -15,7 +15,10 @@ import { ModernClientStore } from './ModernClientStore';
 import { ModernAdminDashboard } from './ModernAdminDashboard';
 
 const EcommercePlatform = () => {
-  const [isAdmin, setIsAdmin] = useState(false);
+  // Détecte automatiquement si on est sur admin.localhost
+  const [isAdmin, setIsAdmin] = useState(() => {
+    return window.location.hostname.startsWith('admin.');
+  });
   const [activeTab, setActiveTab] = useState('dashboard');
   const [cartItems, setCartItems] = useState([]);
   const [wishlist, setWishlist] = useState([]);
@@ -27,6 +30,7 @@ const EcommercePlatform = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [showProductDetail, setShowProductDetail] = useState(false);
   const [showCart, setShowCart] = useState(false);
+  const [showWishlist, setShowWishlist] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState(null);
@@ -866,22 +870,376 @@ const EcommercePlatform = () => {
   // Client Store Components (Now using ModernClientStore)
   const ClientStore = () => {
     return (
-      <ModernClientStore
-        storeName={storeName}
-        flashSaleText={flashSaleText}
-        cartItems={cartItems}
-        wishlist={wishlist}
-        products={products}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        currency={currency}
-        setCurrency={setCurrency}
-        addToCart={addToCart}
-        toggleWishlist={toggleWishlist}
-        setShowCart={setShowCart}
-        setSelectedProduct={setSelectedProduct}
-        setShowProductDetail={setShowProductDetail}
-      />
+      <>
+        <ModernClientStore
+          storeName={storeName}
+          flashSaleText={flashSaleText}
+          cartItems={cartItems}
+          wishlist={wishlist}
+          products={products}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          currency={currency}
+          setCurrency={setCurrency}
+          addToCart={addToCart}
+          toggleWishlist={toggleWishlist}
+          setShowCart={setShowCart}
+          setShowWishlist={setShowWishlist}
+          setSelectedProduct={setSelectedProduct}
+          setShowProductDetail={setShowProductDetail}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+        />
+        
+        {/* Cart Sidebar */}
+        {showCart && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50" onClick={() => setShowCart(false)}>
+            <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <div className="flex flex-col h-full">
+                <div className="flex items-center justify-between p-6 border-b">
+                  <h2 className="text-xl font-bold text-gray-800">Panye Achte ({cartItems.length})</h2>
+                  <button onClick={() => setShowCart(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+                    <X size={24} />
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                  {cartItems.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500">
+                      <ShoppingCart size={48} className="mx-auto mb-4 text-gray-300" />
+                      <p>Panye ou vid</p>
+                    </div>
+                  ) : (
+                    cartItems.map(item => (
+                      <div key={item.id} className="flex gap-4 bg-gray-50 p-4 rounded-lg">
+                        <div className="text-4xl">{item.image}</div>
+                        <div className="flex-1">
+                          <h3 className="font-medium text-gray-800">{item.name}</h3>
+                          <p className="text-sm text-gray-600">{getPriceString(item.price * (1 - item.discount / 100))}</p>
+                          <div className="flex items-center gap-2 mt-2">
+                            <button 
+                              onClick={() => {
+                                const updated = cartItems.map(ci => 
+                                  ci.id === item.id && ci.quantity > 1 
+                                    ? {...ci, quantity: ci.quantity - 1} 
+                                    : ci
+                                );
+                                setCartItems(updated);
+                              }}
+                              className="w-8 h-8 bg-white border border-gray-300 rounded-lg hover:bg-gray-100"
+                            >
+                              -
+                            </button>
+                            <span className="w-8 text-center font-medium">{item.quantity}</span>
+                            <button 
+                              onClick={() => {
+                                const updated = cartItems.map(ci => 
+                                  ci.id === item.id ? {...ci, quantity: ci.quantity + 1} : ci
+                                );
+                                setCartItems(updated);
+                              }}
+                              className="w-8 h-8 bg-white border border-gray-300 rounded-lg hover:bg-gray-100"
+                            >
+                              +
+                            </button>
+                            <button 
+                              onClick={() => setCartItems(cartItems.filter(ci => ci.id !== item.id))}
+                              className="ml-auto text-red-600 hover:bg-red-50 p-2 rounded-lg"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+                {cartItems.length > 0 && (
+                  <div className="border-t p-6 space-y-4">
+                    <div className="flex justify-between text-lg font-semibold text-gray-800">
+                      <span>Total:</span>
+                      <span>{getPriceString(calculateTotal())}</span>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        setShowCart(false);
+                        setShowCheckout(true);
+                      }}
+                      className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-4 rounded-lg font-semibold hover:shadow-lg transition-shadow flex items-center justify-center gap-2"
+                    >
+                      <CreditCard size={20} />
+                      Kontinye ak Peman
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Wishlist Sidebar */}
+        {showWishlist && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50" onClick={() => setShowWishlist(false)}>
+            <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <div className="flex flex-col h-full">
+                <div className="flex items-center justify-between p-6 border-b">
+                  <h2 className="text-xl font-bold text-gray-800">Lis Favorit ({wishlist.length})</h2>
+                  <button onClick={() => setShowWishlist(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+                    <X size={24} />
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                  {wishlist.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500">
+                      <Heart size={48} className="mx-auto mb-4 text-gray-300" />
+                      <p>Lis favorit ou vid</p>
+                      <p className="text-sm mt-2">Ajoute pwodui w renmen yo!</p>
+                    </div>
+                  ) : (
+                    wishlist.map(item => (
+                      <div key={item.id} className="bg-gray-50 p-4 rounded-lg hover:shadow-md transition-shadow">
+                        <div className="flex gap-4">
+                          {item.image && (item.image.startsWith('http://') || item.image.startsWith('https://')) ? (
+                            <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-lg" />
+                          ) : (
+                            <div className="w-20 h-20 flex items-center justify-center text-4xl">{item.image}</div>
+                          )}
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-800 mb-1">{item.name}</h3>
+                            <div className="flex items-center gap-1 mb-2">
+                              <Star size={14} className="text-yellow-400 fill-yellow-400" />
+                              <span className="text-sm text-gray-600">{item.rating}</span>
+                            </div>
+                            <div className="flex items-baseline gap-2 mb-2">
+                              {item.discount > 0 ? (
+                                <>
+                                  <span className="text-lg font-bold text-primary">
+                                    {getPriceString(item.price * (1 - item.discount / 100))}
+                                  </span>
+                                  <span className="text-sm text-gray-500 line-through">
+                                    {getPriceString(item.price)}
+                                  </span>
+                                </>
+                              ) : (
+                                <span className="text-lg font-bold text-primary">
+                                  {getPriceString(item.price)}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              <button 
+                                onClick={() => {
+                                  addToCart(item);
+                                  alert(`${item.name} ajoute nan panye!`);
+                                }}
+                                className="flex-1 bg-primary text-primary-foreground py-2 px-3 rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium flex items-center justify-center gap-1"
+                              >
+                                <ShoppingCart size={16} />
+                                Achte
+                              </button>
+                              <button 
+                                onClick={() => toggleWishlist(item)}
+                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Retire nan favorit"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+                {wishlist.length > 0 && (
+                  <div className="border-t p-6">
+                    <button 
+                      onClick={() => {
+                        wishlist.forEach(item => addToCart(item));
+                        alert(`${wishlist.length} pwodui ajoute nan panye!`);
+                        setShowWishlist(false);
+                        setShowCart(true);
+                      }}
+                      className="w-full bg-gradient-to-r from-pink-600 to-red-600 text-white py-4 rounded-lg font-semibold hover:shadow-lg transition-shadow flex items-center justify-center gap-2"
+                    >
+                      <ShoppingCart size={20} />
+                      Ajoute Tout nan Panye
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Product Detail Modal */}
+        {showProductDetail && selectedProduct && (
+          <ProductDetailModal
+            product={selectedProduct}
+            onClose={() => {
+              setShowProductDetail(false);
+              setSelectedProduct(null);
+            }}
+            onAddToCart={addToCart}
+            onToggleWishlist={toggleWishlist}
+            isInWishlist={wishlist.some(item => item.id === selectedProduct.id)}
+          />
+        )}
+
+        {/* Checkout Modal */}
+        {showCheckout && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-gray-800">Informasyon Peman</h2>
+                <button onClick={() => setShowCheckout(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Order Summary */}
+                <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                  <h3 className="font-semibold text-gray-800 mb-3">Rekap Kòmand</h3>
+                  {cartItems.map(item => (
+                    <div key={item.id} className="flex justify-between text-sm">
+                      <span>{item.name} x{item.quantity}</span>
+                      <span>{getPriceString(item.price * item.quantity * (1 - item.discount / 100))}</span>
+                    </div>
+                  ))}
+                  
+                  {/* Coupon Section */}
+                  {!appliedCoupon ? (
+                    <div className="border-t pt-3 mt-3">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Kòd Koupon (Siw genyen)
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={couponCode}
+                          onChange={(e) => {
+                            setCouponCode(e.target.value);
+                            setCouponError('');
+                          }}
+                          placeholder="Antre kòd koupon"
+                          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                        <button
+                          onClick={applyCoupon}
+                          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                        >
+                          Aplike
+                        </button>
+                      </div>
+                      {couponError && (
+                        <p className="text-xs text-red-600 mt-1">{couponError}</p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="border-t pt-3 mt-3 flex justify-between items-center bg-green-50 p-2 rounded">
+                      <div>
+                        <span className="text-green-700 font-semibold">Koupon aplike: {appliedCoupon.code}</span>
+                        <p className="text-xs text-green-600">
+                          {-getPriceString(calculateDiscount())} rabè
+                        </p>
+                      </div>
+                      <button
+                        onClick={removeCoupon}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )}
+                  
+                  <div className="border-t pt-2 flex justify-between font-semibold">
+                    <span>Total:</span>
+                    <span>{getPriceString(calculateTotal())}</span>
+                  </div>
+                </div>
+
+                {/* Customer Info */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Non Konple *
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ekzanp: Jean Dupont"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="email@example.com"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Telefòn *
+                    </label>
+                    <input
+                      type="tel"
+                      placeholder="+509 1234-5678"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Adrès *
+                    </label>
+                    <textarea
+                      placeholder="Chapo, nem, Vètan, Kowonal..."
+                      rows={3}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Payment Method */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Metòd Peman *
+                  </label>
+                  <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Chwazi metòd peman...</option>
+                    <option value="cash">Lajan Kach</option>
+                    <option value="card">Kat Kredi</option>
+                    <option value="bank">Tvansfè Bankè</option>
+                  </select>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => setShowCheckout(false)}
+                    className="flex-1 px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Retounen
+                  </button>
+                  <button
+                    onClick={() => {
+                      alert('Kòmand lan te soumèt avèk siksè! Nou pral kontakte ou byento.');
+                      setCartItems([]);
+                      setShowCheckout(false);
+                    }}
+                    className="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white py-3 rounded-lg font-semibold hover:shadow-lg transition-shadow flex items-center justify-center gap-2"
+                  >
+                    <CheckCircle size={20} />
+                    Konfime Kòmand
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
     );
   };
 
@@ -1216,6 +1574,101 @@ const EcommercePlatform = () => {
                     >
                       <CreditCard size={20} />
                       Kontinye ak Peman
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Wishlist Sidebar */}
+        {showWishlist && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50" onClick={() => setShowWishlist(false)}>
+            <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <div className="flex flex-col h-full">
+                <div className="flex items-center justify-between p-6 border-b">
+                  <h2 className="text-xl font-bold text-gray-800">Lis Favorit ({wishlist.length})</h2>
+                  <button onClick={() => setShowWishlist(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+                    <X size={24} />
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                  {wishlist.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500">
+                      <Heart size={48} className="mx-auto mb-4 text-gray-300" />
+                      <p>Lis favorit ou vid</p>
+                      <p className="text-sm mt-2">Ajoute pwodui w renmen yo!</p>
+                    </div>
+                  ) : (
+                    wishlist.map(item => (
+                      <div key={item.id} className="bg-gray-50 p-4 rounded-lg hover:shadow-md transition-shadow">
+                        <div className="flex gap-4">
+                          {item.image && (item.image.startsWith('http://') || item.image.startsWith('https://')) ? (
+                            <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-lg" />
+                          ) : (
+                            <div className="w-20 h-20 flex items-center justify-center text-4xl">{item.image}</div>
+                          )}
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-800 mb-1">{item.name}</h3>
+                            <div className="flex items-center gap-1 mb-2">
+                              <Star size={14} className="text-yellow-400 fill-yellow-400" />
+                              <span className="text-sm text-gray-600">{item.rating}</span>
+                            </div>
+                            <div className="flex items-baseline gap-2 mb-2">
+                              {item.discount > 0 ? (
+                                <>
+                                  <span className="text-lg font-bold text-primary">
+                                    {getPriceString(item.price * (1 - item.discount / 100))}
+                                  </span>
+                                  <span className="text-sm text-gray-500 line-through">
+                                    {getPriceString(item.price)}
+                                  </span>
+                                </>
+                              ) : (
+                                <span className="text-lg font-bold text-primary">
+                                  {getPriceString(item.price)}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              <button 
+                                onClick={() => {
+                                  addToCart(item);
+                                  alert(`${item.name} ajoute nan panye!`);
+                                }}
+                                className="flex-1 bg-primary text-primary-foreground py-2 px-3 rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium flex items-center justify-center gap-1"
+                              >
+                                <ShoppingCart size={16} />
+                                Achte
+                              </button>
+                              <button 
+                                onClick={() => toggleWishlist(item)}
+                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Retire nan favorit"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+                {wishlist.length > 0 && (
+                  <div className="border-t p-6">
+                    <button 
+                      onClick={() => {
+                        wishlist.forEach(item => addToCart(item));
+                        alert(`${wishlist.length} pwodui ajoute nan panye!`);
+                        setShowWishlist(false);
+                        setShowCart(true);
+                      }}
+                      className="w-full bg-gradient-to-r from-pink-600 to-red-600 text-white py-4 rounded-lg font-semibold hover:shadow-lg transition-shadow flex items-center justify-center gap-2"
+                    >
+                      <ShoppingCart size={20} />
+                      Ajoute Tout nan Panye
                     </button>
                   </div>
                 )}

@@ -20,25 +20,46 @@ export const ModernClientStore = ({
   addToCart,
   toggleWishlist,
   setShowCart,
+  setShowWishlist,
   setSelectedProduct,
   setShowProductDetail,
+  selectedCategory,
+  setSelectedCategory,
 }) => {
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
+  // Filter products by selected category
+  const filteredProducts = selectedCategory === 'all' || selectedCategory === 'Tout'
+    ? products
+    : products.filter(p => p.category === selectedCategory);
+
   // Featured products (highest rated)
-  const featuredProducts = [...products]
+  const featuredProducts = [...filteredProducts]
     .sort((a, b) => b.rating - a.rating)
     .slice(0, 6);
 
   // Lightning deals (products with high discount)
-  const lightningDeals = products
+  const lightningDeals = filteredProducts
     .filter(p => p.discount >= 20)
     .slice(0, 6);
 
   // Trending products (most sales)
-  const trendingProducts = [...products]
+  const trendingProducts = [...filteredProducts]
     .sort((a, b) => b.sales - a.sales)
     .slice(0, 8);
+
+  // Scroll to top smoothly
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Scroll to lightning deals section
+  const scrollToDeals = () => {
+    const dealsSection = document.getElementById('lightning-deals');
+    if (dealsSection) {
+      dealsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -48,12 +69,18 @@ export const ModernClientStore = ({
         cartCount={cartCount}
         wishlistCount={wishlist.length}
         onCartClick={() => setShowCart(true)}
-        onWishlistClick={() => {/* Handle wishlist view */}}
-        onSearch={() => {/* Handle search */}}
+        onWishlistClick={setShowWishlist}
+        onSearch={() => {
+          if (searchQuery.trim()) {
+            alert(`Rechèch pou: "${searchQuery}"\nFonksyon rechèch ap vini byento!`);
+          }
+        }}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         currency={currency}
         onCurrencyChange={setCurrency}
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
       />
 
       <main className="container mx-auto px-4 py-6 space-y-8">
@@ -65,7 +92,7 @@ export const ModernClientStore = ({
 
         {/* Lightning Deals Section */}
         {lightningDeals.length > 0 && (
-          <section>
+          <section id="lightning-deals">
             <div className="bg-gradient-to-r from-orange-500 to-red-600 rounded-xl p-6 mb-4">
               <div className="flex items-center justify-between text-white">
                 <div className="flex items-center gap-3">
@@ -77,7 +104,17 @@ export const ModernClientStore = ({
                     <p className="text-sm opacity-90">Rabè rapid - Tan limite!</p>
                   </div>
                 </div>
-                <Button variant="secondary" className="bg-white text-orange-600 hover:bg-gray-100">
+                <Button 
+                  variant="secondary" 
+                  className="bg-white text-orange-600 hover:bg-gray-100"
+                  onClick={() => {
+                    const firstDeal = lightningDeals[0];
+                    if (firstDeal) {
+                      setSelectedProduct(firstDeal);
+                      setShowProductDetail(true);
+                    }
+                  }}
+                >
                   SHOP NOW
                   <ChevronRight className="ml-2" size={18} />
                 </Button>
@@ -103,7 +140,10 @@ export const ModernClientStore = ({
 
         {/* Promotional Banners Row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-gradient-to-br from-green-500 to-green-600 p-8 text-white relative overflow-hidden">
+          <Card 
+            className="bg-gradient-to-br from-green-500 to-green-600 p-8 text-white relative overflow-hidden cursor-pointer hover:shadow-2xl transition-shadow"
+            onClick={scrollToDeals}
+          >
             <div className="relative z-10">
               <Badge className="bg-white/20 text-white mb-3">LOCAL WAREHOUSE</Badge>
               <h3 className="text-3xl font-bold mb-2">LIVREZON RAPID</h3>
@@ -115,7 +155,10 @@ export const ModernClientStore = ({
             <div className="absolute -bottom-4 -right-4 text-white/10 text-9xl">📦</div>
           </Card>
 
-          <Card className="bg-gradient-to-br from-orange-400 to-orange-600 p-8 text-white relative overflow-hidden">
+          <Card 
+            className="bg-gradient-to-br from-orange-400 to-orange-600 p-8 text-white relative overflow-hidden cursor-pointer hover:shadow-2xl transition-shadow"
+            onClick={scrollToDeals}
+          >
             <div className="relative z-10">
               <Badge className="bg-white/20 text-white mb-3">SAVE BIG</Badge>
               <h3 className="text-3xl font-bold mb-2">PRI DROP</h3>
@@ -127,7 +170,13 @@ export const ModernClientStore = ({
             <div className="absolute -bottom-4 -right-4 text-white/10 text-9xl">💰</div>
           </Card>
 
-          <Card className="bg-gradient-to-br from-red-500 to-pink-600 p-8 text-white relative overflow-hidden">
+          <Card 
+            className="bg-gradient-to-br from-red-500 to-pink-600 p-8 text-white relative overflow-hidden cursor-pointer hover:shadow-2xl transition-shadow"
+            onClick={() => {
+              setSelectedCategory('all');
+              scrollToTop();
+            }}
+          >
             <div className="relative z-10">
               <Badge className="bg-white/20 text-white mb-3">HOT</Badge>
               <h3 className="text-3xl font-bold mb-2">TEMU POPULAR</h3>
@@ -187,7 +236,10 @@ export const ModernClientStore = ({
         </section>
 
         {/* Hot Deals Banner */}
-        <Card className="bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 p-12 text-center relative overflow-hidden">
+        <Card 
+          className="bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 p-12 text-center relative overflow-hidden cursor-pointer hover:shadow-2xl transition-shadow"
+          onClick={scrollToDeals}
+        >
           <div className="relative z-10">
             <h2 className="text-4xl md:text-5xl font-black text-white mb-4">
               SCORE HOT DEALS
@@ -203,14 +255,17 @@ export const ModernClientStore = ({
         </Card>
 
         {/* All Products Section */}
-        <section>
+        <section id="all-products">
           <SectionHeader
-            title="📦 Tout Pwodui"
-            subtitle={`${products.length} pwodui disponib`}
+            title={selectedCategory === 'all' || selectedCategory === 'Tout' 
+              ? "📦 Tout Pwodui" 
+              : `📦 ${selectedCategory}`
+            }
+            subtitle={`${filteredProducts.length} pwodui disponib`}
             showViewAll={false}
           />
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {products.map((product) => (
+            {filteredProducts.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
