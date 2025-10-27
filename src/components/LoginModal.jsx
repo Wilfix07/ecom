@@ -6,7 +6,7 @@ import { Card } from './ui/card';
 import UserProfile from './UserProfile';
 import { supabase } from '../lib/supabase';
 
-const LoginModal = ({ onClose }) => {
+const LoginModal = ({ onClose, onLoginSuccess }) => {
   const [showProfile, setShowProfile] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [isLogin, setIsLogin] = useState(true);
@@ -28,10 +28,27 @@ const LoginModal = ({ onClose }) => {
     try {
       if (isLogin) {
         // Login logic - Simplified for now
-        console.log('Login:', { email: formData.email, password: formData.password });
-        
         // Generate a simple user ID (In production, use proper auth)
         const userId = `user_${Date.now()}`;
+        
+        // Fetch or create user profile
+        let profile = null;
+        const { data: profileData, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .maybeSingle();
+        
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.warn('Error fetching profile:', profileError);
+        } else if (profileData) {
+          profile = profileData;
+        }
+        
+        if (onLoginSuccess) {
+          onLoginSuccess({ userId, profile });
+        }
+        
         setCurrentUserId(userId);
         setShowProfile(true);
       } else {
@@ -41,14 +58,32 @@ const LoginModal = ({ onClose }) => {
           return;
         }
         
-        console.log('Register:', formData);
-        
         // Generate user ID
         const userId = `user_${Date.now()}`;
-        setCurrentUserId(userId);
         
-        // Auto-fill profile with registration data
-        setFormData(prev => ({ ...prev, email: formData.email, full_name: formData.name }));
+        // Create user profile
+        let profile = null;
+        const { data: profileData, error: insertError } = await supabase
+          .from('user_profiles')
+          .insert([{
+            user_id: userId,
+            email: formData.email,
+            full_name: formData.name
+          }])
+          .select()
+          .maybeSingle();
+        
+        if (insertError) {
+          console.error('Error creating profile:', insertError);
+        } else if (profileData) {
+          profile = profileData;
+        }
+        
+        if (onLoginSuccess) {
+          onLoginSuccess({ userId, profile });
+        }
+        
+        setCurrentUserId(userId);
         setShowProfile(true);
       }
     } catch (error) {

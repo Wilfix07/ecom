@@ -13,7 +13,6 @@ export function useSettings() {
   async function fetchSettings() {
     try {
       setLoading(true);
-      console.log('Fetching settings from Supabase...');
       
       const { data, error } = await supabase
         .from('settings')
@@ -25,8 +24,6 @@ export function useSettings() {
         throw error;
       }
       
-      console.log('Settings loaded:', data?.length, 'items');
-      console.log('Settings data:', data);
       
       setSettings(data || []);
     } catch (error) {

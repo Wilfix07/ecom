@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Search, Menu, X, Home, Package, Users, BarChart3, Settings, Tag, TrendingUp, Heart, Star, MapPin, CreditCard, Truck, Filter, Grid, List, ChevronDown, Plus, Edit, Trash2, Eye, DollarSign, Clock, CheckCircle, XCircle, Bell, AlertCircle } from 'lucide-react';
+import { ShoppingCart, Search, Menu, X, Home, Package, Users, BarChart3, Settings, Tag, TrendingUp, Heart, Star, MapPin, CreditCard, Truck, Filter, Grid, List, ChevronDown, Plus, Edit, Trash2, Eye, DollarSign, Clock, CheckCircle, XCircle, Bell, AlertCircle, Mail } from 'lucide-react';
 import { useProducts } from '../hooks/useProducts';
 import { useOrders } from '../hooks/useOrders';
 import { useCustomers } from '../hooks/useCustomers';
@@ -17,6 +17,7 @@ import ReturnRefundPolicy from './ReturnRefundPolicy';
 import AboutUsPage from './AboutUsPage';
 import ContactPage from './ContactPage';
 import LoginModal from './LoginModal';
+import ProfilePage from './ProfilePage';
 import { Shield } from 'lucide-react';
 import { Badge } from './ui/badge';
 
@@ -42,6 +43,10 @@ const EcommercePlatform = () => {
   const [showAboutUs, setShowAboutUs] = useState(false);
   const [showContact, setShowContact] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null); // { userId, profile }
+  const [showCustomerDetail, setShowCustomerDetail] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponError, setCouponError] = useState('');
@@ -66,11 +71,7 @@ const EcommercePlatform = () => {
   useEffect(() => {
     if (settings && settings.length > 0) {
       const rate = getSettingValue('exchange_rate_htg_to_usd', '135');
-      console.log('Loading exchange rate from settings:', rate);
       setExchangeRate(parseFloat(rate));
-      
-      const name = getSettingValue('store_name', 'TechMart Haiti');
-      console.log('Store name loaded from settings:', name);
     }
   }, [settings, getSettingValue]);
   
@@ -82,9 +83,6 @@ const EcommercePlatform = () => {
   const storeAddress = getSettingValue('store_address', 'Port-au-Prince, Haiti');
   const footerText = getSettingValue('footer_text', '© 2025 TechMart Haiti. Tout dwa rezève.');
   const primaryColor = getSettingValue('primary_color', '#2563eb');
-  
-  console.log('Current store name:', storeName);
-  console.log('Current flash sale text:', flashSaleText);
 
   const categories = ['all', 'Electronics', 'Fashion', 'Shoes', 'Home', 'Beauty', 'Sports'];
 
@@ -416,10 +414,79 @@ const EcommercePlatform = () => {
       }
     };
 
-    const handleEditProduct = (product) => {
-      setEditingProduct(product);
-      setShowAddProduct(true);
-    };
+  const handleEditProduct = (product) => {
+    setEditingProduct(product);
+    setShowAddProduct(true);
+  };
+
+  const handleViewCustomer = (customer) => {
+    setSelectedCustomer(customer);
+    setShowCustomerDetail(true);
+  };
+
+  const handleNotifyCustomer = (customer) => {
+    alert(`Notifikasyon ap voye bay ${customer.name} (${customer.email})`);
+  };
+
+  const handleUpdateProfile = async (updatedProfile) => {
+    if (!currentUser?.userId) return;
+
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({
+          ...updatedProfile,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', currentUser.userId);
+
+      if (error) throw error;
+
+      // Log activity
+      await supabase
+        .from('activity_logs')
+        .insert([{
+          user_id: currentUser.userId,
+          action: 'profile_updated',
+          meta: { fields: Object.keys(updatedProfile) }
+        }]);
+
+      // Update local state
+      setCurrentUser({
+        ...currentUser,
+        profile: { ...currentUser.profile, ...updatedProfile }
+      });
+
+      alert('Profi mizajou avèk siksè!');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Erè nan mizajou profi a');
+    }
+  };
+
+  const handleReorder = async (items, skippedItems) => {
+    // Add items to cart
+    items.forEach(item => {
+      const product = {
+        id: item.product_id,
+        name: item.product_name,
+        price: item.unit_price,
+        image: item.products?.image_1 || item.products?.image,
+        stock: item.products?.stock || 0
+      };
+      addToCart(product);
+    });
+
+    // Show notification
+    if (skippedItems.length > 0) {
+      alert(`${items.length} atik ajoute nan panye ou!\n${skippedItems.length} atik pa disponib.`);
+    } else {
+      alert(`${items.length} atik ajoute nan panye ou!`);
+    }
+
+    // Navigate to cart
+    setShowCart(true);
+  };
 
     const handleDeleteProduct = async (productId) => {
       try {
@@ -724,10 +791,18 @@ const EcommercePlatform = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex justify-end gap-2">
-                          <button className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors">
+                          <button 
+                            className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                            onClick={() => handleViewCustomer(customer)}
+                            title="Gade Detay Kliyan"
+                          >
                             <Eye size={18} />
                           </button>
-                          <button className="p-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors">
+                          <button 
+                            className="p-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors"
+                            onClick={() => handleNotifyCustomer(customer)}
+                            title="Voye Notifikasyon"
+                          >
                             <Bell size={18} />
                           </button>
                         </div>
@@ -951,8 +1026,15 @@ const EcommercePlatform = () => {
         setSelectedCategory={setSelectedCategory}
         setShowAboutUs={setShowAboutUs}
         setShowContact={setShowContact}
-        setShowLogin={setShowLogin}
+        setShowLogin={() => {
+          if (currentUser) {
+            setShowProfile(true);
+          } else {
+            setShowLogin(true);
+          }
+        }}
         getPriceString={getPriceString}
+        currentUser={currentUser}
       />
         
         {/* Cart Sidebar */}
@@ -1375,7 +1457,77 @@ const EcommercePlatform = () => {
             onClose={() => {
               setShowLogin(false);
             }}
+            onLoginSuccess={(user) => {
+              setCurrentUser(user);
+              setShowLogin(false);
+              setShowProfile(true);
+            }}
           />
+        )}
+
+        {/* Customer Detail Modal */}
+        {showCustomerDetail && selectedCustomer && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-gray-800">Detay Kliyan</h2>
+                <Button variant="ghost" size="icon" onClick={() => {
+                  setShowCustomerDetail(false);
+                  setSelectedCustomer(null);
+                }}>
+                  <X size={24} />
+                </Button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Customer Info */}
+                <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-3xl font-bold">
+                      {selectedCustomer.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-800">{selectedCustomer.name}</h3>
+                      <p className="text-gray-600">{selectedCustomer.email}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-blue-50 rounded-lg p-4 text-center">
+                    <p className="text-sm text-blue-600 font-semibold mb-1">Kòmand</p>
+                    <p className="text-2xl font-bold text-blue-800">{selectedCustomer.orders || 0}</p>
+                  </div>
+                  <div className="bg-green-50 rounded-lg p-4 text-center">
+                    <p className="text-sm text-green-600 font-semibold mb-1">Total Depanse</p>
+                    <p className="text-lg font-bold text-green-800">{getPriceString(parseFloat(selectedCustomer.spent) || 0)}</p>
+                  </div>
+                  <div className="bg-purple-50 rounded-lg p-4 text-center">
+                    <p className="text-sm text-purple-600 font-semibold mb-1">Moun ki Rejistre</p>
+                    <p className="text-sm font-semibold text-purple-800">
+                      {new Date(selectedCustomer.joined).toLocaleDateString('ht-HT')}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3 pt-4 border-t">
+                  <Button variant="default" className="flex-1 gap-2" onClick={() => handleNotifyCustomer(selectedCustomer)}>
+                    <Bell size={18} />
+                    Voye Notifikasyon
+                  </Button>
+                  <Button variant="outline" className="gap-2" onClick={() => {
+                    navigator.clipboard.writeText(selectedCustomer.email);
+                    alert('Email kopye!');
+                  }}>
+                    <Mail size={18} />
+                    Kopye Email
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </>
     );
@@ -2075,7 +2227,27 @@ const EcommercePlatform = () => {
     );
   };
 
-  return isAdmin ? <AdminLayout /> : <ClientStore />;
+  return isAdmin ? (
+    <AdminLayout />
+  ) : (
+    <>
+      <ClientStore />
+      
+      {/* Profile Page - rendered at main level */}
+      {showProfile && currentUser && (
+        <ProfilePage
+          userId={currentUser.userId}
+          userProfile={currentUser.profile}
+          onBack={() => {
+            setShowProfile(false);
+          }}
+          onUpdateProfile={handleUpdateProfile}
+          onReorder={handleReorder}
+          onAddToCart={addToCart}
+        />
+      )}
+    </>
+  );
 };
 
 export default EcommercePlatform;
