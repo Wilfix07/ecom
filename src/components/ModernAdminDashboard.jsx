@@ -14,17 +14,23 @@ import {
 } from 'lucide-react';
 import { useCurrency } from '../contexts/CurrencyContext';
 
-export const ModernAdminDashboard = ({ products, orders, customers }) => {
+export const ModernAdminDashboard = ({ products = [], orders = [], customers = [] }) => {
   const { getPriceString } = useCurrency();
 
-  // Calculate stats
-  const totalRevenue = orders.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0);
+  // Safety checks and calculations
+  const totalRevenue = orders.length > 0 
+    ? orders.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0) 
+    : 0;
   const totalOrders = orders.length;
   const totalProducts = products.length;
   const totalCustomers = customers.length;
   
-  const pendingOrders = orders.filter(o => o.status === 'pending' || o.status === 'Pending').length;
-  const lowStockProducts = products.filter(p => p.stock < 20).length;
+  const pendingOrders = orders.filter(o => {
+    const status = (o.status || '').toLowerCase();
+    return status === 'pending';
+  }).length;
+  
+  const lowStockProducts = products.filter(p => (p.stock || 0) < 20).length;
   const totalSales = products.reduce((sum, p) => sum + (parseInt(p.sales) || 0), 0);
   const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
   
@@ -250,6 +256,80 @@ export const ModernAdminDashboard = ({ products, orders, customers }) => {
           </CardContent>
         </Card>
       </div>
+
+      {/* All Orders Table */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle>Tout Kòmand Yo ({totalOrders})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">ID</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Kliyan</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Dat</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Atik</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Total</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Estat</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map((order) => {
+                  const getStatusBadge = () => {
+                    switch(order.status?.toLowerCase()) {
+                      case 'delivered': 
+                        return <Badge className="bg-green-100 text-green-700">Livre</Badge>;
+                      case 'shipped': 
+                        return <Badge className="bg-blue-100 text-blue-700">Anvolè</Badge>;
+                      case 'processing': 
+                        return <Badge className="bg-yellow-100 text-yellow-700">Nan Tretman</Badge>;
+                      case 'pending': 
+                        return <Badge className="bg-gray-100 text-gray-700">An Jantèy</Badge>;
+                      default: 
+                        return <Badge className="bg-gray-100 text-gray-700">{order.status}</Badge>;
+                    }
+                  };
+
+                  return (
+                    <tr key={order.id} className="border-b border-border hover:bg-muted/50 transition-colors">
+                      <td className="py-3 px-4 text-sm font-medium text-foreground">
+                        #{order.id}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-foreground">
+                        {order.customer_name || order.customer || 'Anonèm'}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-muted-foreground">
+                        {new Date(order.order_date).toLocaleDateString('ht-HT', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </td>
+                      <td className="py-3 px-4 text-sm text-foreground">
+                        {order.items} pwodui
+                      </td>
+                      <td className="py-3 px-4 text-sm font-semibold text-foreground">
+                        {getPriceString(order.total)}
+                      </td>
+                      <td className="py-3 px-4">
+                        {getStatusBadge()}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          {orders.length === 0 && (
+            <div className="text-center py-12 text-muted-foreground">
+              <Package size={48} className="mx-auto mb-4 opacity-50" />
+              <p>Pa gen kòmand ankò</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

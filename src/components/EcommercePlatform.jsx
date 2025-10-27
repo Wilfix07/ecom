@@ -653,45 +653,84 @@ const EcommercePlatform = () => {
   };
 
   const CustomersManagement = () => {
+    if (customersLoading) {
+      return (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Chajman kliyan yo...</p>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-gray-800">Jesyon Kliyan</h1>
-
-        <div className="bg-white rounded-xl shadow-md overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Kliyan</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Email</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Kòmand</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Total Depanse</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Dat Enskripsyon</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Aksyon</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {customers.map(customer => (
-                <tr key={customer.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-gray-800">{customer.name}</td>
-                  <td className="px-6 py-4 text-gray-600">{customer.email}</td>
-                  <td className="px-6 py-4 text-gray-600">{customer.orders}</td>
-                  <td className="px-6 py-4 font-semibold text-gray-800">{customer.spent.toLocaleString()} HTG</td>
-                  <td className="px-6 py-4 text-gray-600">{customer.joined}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex justify-end gap-2">
-                      <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                        <Eye size={18} />
-                      </button>
-                      <button className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                        <Bell size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-gray-800">Jesyon Kliyan</h1>
+          <Badge variant="secondary" className="text-lg px-4 py-2">
+            {customers.length} kliyan
+          </Badge>
         </div>
+
+        {customers.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-md p-12 text-center">
+            <Users size={64} className="mx-auto mb-4 text-gray-300" />
+            <p className="text-gray-600 text-lg">Pa gen kliyan ankò</p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-muted border-b border-border">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Kliyan</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Email</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Kòmand</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Total Depanse</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">Dat Enskripsyon</th>
+                    <th className="px-6 py-3 text-right text-xs font-semibold text-muted-foreground uppercase">Aksyon</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {customers.map(customer => (
+                    <tr key={customer.id} className="hover:bg-muted/50 transition-colors">
+                      <td className="px-6 py-4 text-sm font-medium text-foreground">{customer.id}</td>
+                      <td className="px-6 py-4 font-medium text-foreground">{customer.name}</td>
+                      <td className="px-6 py-4 text-sm text-muted-foreground">{customer.email}</td>
+                      <td className="px-6 py-4">
+                        <Badge variant="secondary" className="text-xs">
+                          {customer.orders || 0}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 font-semibold text-foreground">
+                        {getPriceString(parseFloat(customer.spent) || 0)}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-muted-foreground">
+                        {new Date(customer.joined).toLocaleDateString('ht-HT', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex justify-end gap-2">
+                          <button className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors">
+                            <Eye size={18} />
+                          </button>
+                          <button className="p-2 text-muted-foreground hover:bg-muted rounded-lg transition-colors">
+                            <Bell size={18} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -884,6 +923,7 @@ const EcommercePlatform = () => {
         cartItems={cartItems}
         wishlist={wishlist}
         products={products}
+        orders={orders}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         currency={currency}
@@ -897,7 +937,8 @@ const EcommercePlatform = () => {
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
         setShowAboutUs={setShowAboutUs}
-      setShowContact={setShowContact}
+        setShowContact={setShowContact}
+        getPriceString={getPriceString}
       />
         
         {/* Cart Sidebar */}
@@ -1110,9 +1151,34 @@ const EcommercePlatform = () => {
                 <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                   <h3 className="font-semibold text-gray-800 mb-3">Rekap Kòmand</h3>
                   {cartItems.map(item => (
-                    <div key={item.id} className="flex justify-between text-sm">
-                      <span>{item.name} x{item.quantity}</span>
-                      <span>{getPriceString(item.price * item.quantity * (1 - item.discount / 100))}</span>
+                    <div key={item.id} className="flex items-center gap-3 text-sm">
+                      <div className="flex-shrink-0">
+                        {item.image && typeof item.image === 'string' && (item.image.startsWith('http://') || item.image.startsWith('https://')) ? (
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-12 h-12 object-cover rounded-lg"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              const fallback = e.target.nextElementSibling;
+                              if (fallback) fallback.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
+                        <div className="w-12 h-12 flex items-center justify-center text-2xl bg-gray-200 rounded-lg" style={{ display: item.image && typeof item.image === 'string' && (item.image.startsWith('http://') || item.image.startsWith('https://')) ? 'none' : 'flex' }}>
+                          {item.image || '📦'}
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-gray-800 truncate">{item.name}</div>
+                        <div className="text-gray-500">Qty: {item.quantity}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-semibold text-gray-800">{getPriceString(item.price * item.quantity * (1 - item.discount / 100))}</div>
+                        {item.discount > 0 && (
+                          <div className="text-xs text-gray-500 line-through">{getPriceString(item.price * item.quantity)}</div>
+                        )}
+                      </div>
                     </div>
                   ))}
                   
@@ -1756,9 +1822,34 @@ const EcommercePlatform = () => {
                 <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                   <h3 className="font-semibold text-gray-800 mb-3">Rekap Kòmand</h3>
                   {cartItems.map(item => (
-                    <div key={item.id} className="flex justify-between text-sm">
-                      <span>{item.name} x{item.quantity}</span>
-                      <span>{getPriceString(item.price * item.quantity * (1 - item.discount / 100))}</span>
+                    <div key={item.id} className="flex items-center gap-3 text-sm">
+                      <div className="flex-shrink-0">
+                        {item.image && typeof item.image === 'string' && (item.image.startsWith('http://') || item.image.startsWith('https://')) ? (
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-12 h-12 object-cover rounded-lg"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              const fallback = e.target.nextElementSibling;
+                              if (fallback) fallback.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
+                        <div className="w-12 h-12 flex items-center justify-center text-2xl bg-gray-200 rounded-lg" style={{ display: item.image && typeof item.image === 'string' && (item.image.startsWith('http://') || item.image.startsWith('https://')) ? 'none' : 'flex' }}>
+                          {item.image || '📦'}
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-gray-800 truncate">{item.name}</div>
+                        <div className="text-gray-500">Qty: {item.quantity}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-semibold text-gray-800">{getPriceString(item.price * item.quantity * (1 - item.discount / 100))}</div>
+                        {item.discount > 0 && (
+                          <div className="text-xs text-gray-500 line-through">{getPriceString(item.price * item.quantity)}</div>
+                        )}
+                      </div>
                     </div>
                   ))}
                   

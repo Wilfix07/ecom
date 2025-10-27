@@ -2,6 +2,7 @@ import React from 'react';
 import { ModernHeader } from './ModernHeader';
 import { PromoBanner, PromoFeatures, SectionHeader } from './PromoSection';
 import { ProductCard } from './ProductCard';
+import { OrdersSection } from './OrdersSection';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
@@ -13,6 +14,7 @@ export const ModernClientStore = ({
   cartItems,
   wishlist,
   products,
+  orders,
   searchQuery,
   setSearchQuery,
   currency,
@@ -27,6 +29,7 @@ export const ModernClientStore = ({
   setSelectedCategory,
   setShowAboutUs,
   setShowContact,
+  getPriceString,
 }) => {
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -282,6 +285,14 @@ export const ModernClientStore = ({
             ))}
           </div>
         </section>
+
+        {/* Orders Section */}
+        {orders && orders.length > 0 && (
+          <OrdersSection 
+            orders={orders} 
+            getPriceString={getPriceString} 
+          />
+        )}
       </main>
 
       {/* Footer */}
