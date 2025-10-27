@@ -25,6 +25,7 @@ export function useProducts() {
         ...product,
         price: parseFloat(product.price),
         rating: parseFloat(product.rating),
+        image: product.image || '📦', // Ensure image is always a string
       }));
       
       setProducts(formattedData);

@@ -45,6 +45,14 @@ A full-featured e-commerce platform with admin dashboard, built with React, Tail
   - Usage tracking
   - Beautiful coupon cards
 
+- **Settings/Configuration**
+  - Complete store configuration panel
+  - Store information, payment, shipping, tax settings
+  - Inventory alerts and notifications
+  - Social media links and appearance customization
+  - 24 settings across 8 categories
+  - Real-time updates with batch save
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -126,6 +134,13 @@ The Supabase PostgreSQL database includes the following tables:
 - Percentage and fixed discount coupons
 - Active/inactive status
 - Usage tracking
+
+### Settings
+- Comprehensive configuration system
+- 24 pre-configured settings across 8 categories
+- Store information, payment, shipping, tax, inventory, notifications
+- Social media links and appearance customization
+- Real-time updates with batch save functionality
 
 All tables include Row Level Security (RLS) policies for data protection.
 
