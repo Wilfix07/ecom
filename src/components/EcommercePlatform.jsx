@@ -15,6 +15,7 @@ import { ModernClientStore } from './ModernClientStore';
 import { ModernAdminDashboard } from './ModernAdminDashboard';
 import ReturnRefundPolicy from './ReturnRefundPolicy';
 import AboutUsPage from './AboutUsPage';
+import ContactPage from './ContactPage';
 import { Shield } from 'lucide-react';
 
 const EcommercePlatform = () => {
@@ -37,6 +38,7 @@ const EcommercePlatform = () => {
   const [showCheckout, setShowCheckout] = useState(false);
   const [showReturnPolicy, setShowReturnPolicy] = useState(false);
   const [showAboutUs, setShowAboutUs] = useState(false);
+  const [showContact, setShowContact] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponError, setCouponError] = useState('');
@@ -895,6 +897,7 @@ const EcommercePlatform = () => {
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
         setShowAboutUs={setShowAboutUs}
+      setShowContact={setShowContact}
       />
         
         {/* Cart Sidebar */}
@@ -1273,6 +1276,15 @@ const EcommercePlatform = () => {
           <AboutUsPage
             onBack={() => {
               setShowAboutUs(false);
+            }}
+          />
+        )}
+
+        {/* Contact Page */}
+        {showContact && (
+          <ContactPage
+            onBack={() => {
+              setShowContact(false);
             }}
           />
         )}

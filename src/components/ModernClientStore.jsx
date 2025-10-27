@@ -26,6 +26,7 @@ export const ModernClientStore = ({
   selectedCategory,
   setSelectedCategory,
   setShowAboutUs,
+  setShowContact,
 }) => {
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -290,7 +291,11 @@ export const ModernClientStore = ({
             <div>
               <h3 className="font-bold mb-4">Èd</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground">Kontakte Nou</a></li>
+                <li>
+                  <button onClick={() => setShowContact(true)} className="hover:text-foreground cursor-pointer">
+                    Kontakte Nou
+                  </button>
+                </li>
                 <li><a href="#" className="hover:text-foreground">FAQ</a></li>
                 <li><a href="#" className="hover:text-foreground">Suivi Kòmand</a></li>
               </ul>
