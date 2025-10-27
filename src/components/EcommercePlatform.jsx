@@ -16,6 +16,7 @@ import { ModernAdminDashboard } from './ModernAdminDashboard';
 import ReturnRefundPolicy from './ReturnRefundPolicy';
 import AboutUsPage from './AboutUsPage';
 import ContactPage from './ContactPage';
+import LoginModal from './LoginModal';
 import { Shield } from 'lucide-react';
 
 const EcommercePlatform = () => {
@@ -39,6 +40,7 @@ const EcommercePlatform = () => {
   const [showReturnPolicy, setShowReturnPolicy] = useState(false);
   const [showAboutUs, setShowAboutUs] = useState(false);
   const [showContact, setShowContact] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponError, setCouponError] = useState('');
@@ -938,6 +940,7 @@ const EcommercePlatform = () => {
         setSelectedCategory={setSelectedCategory}
         setShowAboutUs={setShowAboutUs}
         setShowContact={setShowContact}
+        setShowLogin={setShowLogin}
         getPriceString={getPriceString}
       />
         
@@ -1351,6 +1354,15 @@ const EcommercePlatform = () => {
           <ContactPage
             onBack={() => {
               setShowContact(false);
+            }}
+          />
+        )}
+
+        {/* Login Modal */}
+        {showLogin && (
+          <LoginModal
+            onClose={() => {
+              setShowLogin(false);
             }}
           />
         )}

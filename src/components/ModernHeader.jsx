@@ -12,6 +12,7 @@ export const ModernHeader = ({
   wishlistCount,
   onCartClick,
   onWishlistClick,
+  onLoginClick,
   onSearch,
   searchQuery,
   setSearchQuery,
@@ -43,7 +44,12 @@ export const ModernHeader = ({
                 <option value="HTG">HTG</option>
                 <option value="USD">USD</option>
               </select>
-              <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-primary-foreground hover:bg-primary-foreground/10"
+                onClick={onLoginClick}
+              >
                 <User size={16} className="mr-1" />
                 Konekte
               </Button>

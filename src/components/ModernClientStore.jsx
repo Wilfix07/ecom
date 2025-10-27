@@ -29,6 +29,7 @@ export const ModernClientStore = ({
   setSelectedCategory,
   setShowAboutUs,
   setShowContact,
+  setShowLogin,
   getPriceString,
 }) => {
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -75,6 +76,7 @@ export const ModernClientStore = ({
         wishlistCount={wishlist.length}
         onCartClick={() => setShowCart(true)}
         onWishlistClick={setShowWishlist}
+        onLoginClick={() => setShowLogin(true)}
         onSearch={() => {
           if (searchQuery.trim()) {
             alert(`Rechèch pou: "${searchQuery}"\nFonksyon rechèch ap vini byento!`);
