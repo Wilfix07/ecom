@@ -9,8 +9,13 @@ import { Badge } from './ui/badge';
 import { Zap, TrendingUp, Star, ChevronRight } from 'lucide-react';
 
 export const ModernClientStore = ({
-  storeName,
-  flashSaleText,
+  storeName = 'DEB Online Store',
+  flashSaleText = 'FLASH SALE',
+  storeEmail = 'debcargoshipping@gmail.com',
+  storePhone = '+509 1234-5678',
+  storeAddress = 'Port-au-Prince, Haiti',
+  footerText = '© 2025 TechMart Haiti. Tout dwa rezève.',
+  primaryColor = '#2563eb',
   cartItems,
   wishlist,
   products,
@@ -322,11 +327,11 @@ export const ModernClientStore = ({
               </ul>
             </div>
             <div>
-              <h3 className="font-bold mb-4">Swiv Nou</h3>
+              <h3 className="font-bold mb-4">Enfòmasyon</h3>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground">Facebook</a></li>
-                <li><a href="#" className="hover:text-foreground">Instagram</a></li>
-                <li><a href="#" className="hover:text-foreground">Twitter</a></li>
+                <li><span>{storePhone}</span></li>
+                <li><a href={`mailto:${storeEmail}`} className="hover:text-foreground">{storeEmail}</a></li>
+                <li><span>{storeAddress}</span></li>
               </ul>
             </div>
           </div>
@@ -353,7 +358,7 @@ export const ModernClientStore = ({
           </div>
           
           <div className="text-center text-sm text-muted-foreground border-t border-border pt-8">
-            <p>© 2024 {storeName}. Tout dwa rezève.</p>
+            <p>{footerText}</p>
           </div>
         </div>
       </footer>

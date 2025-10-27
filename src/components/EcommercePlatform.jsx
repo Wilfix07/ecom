@@ -18,6 +18,7 @@ import AboutUsPage from './AboutUsPage';
 import ContactPage from './ContactPage';
 import LoginModal from './LoginModal';
 import { Shield } from 'lucide-react';
+import { Badge } from './ui/badge';
 
 const EcommercePlatform = () => {
   // Détecte automatiquement si on est sur admin.localhost
@@ -73,9 +74,14 @@ const EcommercePlatform = () => {
     }
   }, [settings, getSettingValue]);
   
-  // Get store name from settings
-  const storeName = getSettingValue('store_name', 'TechMart Haiti');
+  // Get store settings from database
+  const storeName = getSettingValue('store_name', 'DEB Online Store');
   const flashSaleText = getSettingValue('flash_sale_text', 'FLASH SALE');
+  const storeEmail = getSettingValue('store_email', 'debcargoshipping@gmail.com');
+  const storePhone = getSettingValue('store_phone', '+509 1234-5678');
+  const storeAddress = getSettingValue('store_address', 'Port-au-Prince, Haiti');
+  const footerText = getSettingValue('footer_text', '© 2025 TechMart Haiti. Tout dwa rezève.');
+  const primaryColor = getSettingValue('primary_color', '#2563eb');
   
   console.log('Current store name:', storeName);
   console.log('Current flash sale text:', flashSaleText);
@@ -922,6 +928,11 @@ const EcommercePlatform = () => {
       <ModernClientStore
         storeName={storeName}
         flashSaleText={flashSaleText}
+        storeEmail={storeEmail}
+        storePhone={storePhone}
+        storeAddress={storeAddress}
+        footerText={footerText}
+        primaryColor={primaryColor}
         cartItems={cartItems}
         wishlist={wishlist}
         products={products}
