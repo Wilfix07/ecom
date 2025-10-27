@@ -11,6 +11,8 @@ import CouponModal from './CouponModal';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { supabase } from '../lib/supabase';
 import ProductDetailModal from './ProductDetailModal';
+import { ModernClientStore } from './ModernClientStore';
+import { ModernAdminDashboard } from './ModernAdminDashboard';
 
 const EcommercePlatform = () => {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -861,8 +863,30 @@ const EcommercePlatform = () => {
     );
   };
 
-  // Client Store Components
+  // Client Store Components (Now using ModernClientStore)
   const ClientStore = () => {
+    return (
+      <ModernClientStore
+        storeName={storeName}
+        flashSaleText={flashSaleText}
+        cartItems={cartItems}
+        wishlist={wishlist}
+        products={products}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        currency={currency}
+        setCurrency={setCurrency}
+        addToCart={addToCart}
+        toggleWishlist={toggleWishlist}
+        setShowCart={setShowCart}
+        setSelectedProduct={setSelectedProduct}
+        setShowProductDetail={setShowProductDetail}
+      />
+    );
+  };
+
+  // Original ClientStore (backup, can be removed)
+  const OldClientStore = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
@@ -1417,15 +1441,19 @@ const EcommercePlatform = () => {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-8">
-            {activeTab === 'dashboard' && <AdminDashboard />}
-            {activeTab === 'products' && <ProductsManagement />}
-            {activeTab === 'orders' && <OrdersManagement />}
-            {activeTab === 'customers' && <CustomersManagement />}
-            {activeTab === 'coupons' && <CouponsManagement />}
-            {activeTab === 'settings' && <SettingsManagement />}
-          </div>
+        <div className="flex-1 overflow-y-auto bg-muted/30">
+          {activeTab === 'dashboard' && (
+            <ModernAdminDashboard 
+              products={products}
+              orders={orders}
+              customers={customers}
+            />
+          )}
+          {activeTab === 'products' && <div className="p-8"><ProductsManagement /></div>}
+          {activeTab === 'orders' && <div className="p-8"><OrdersManagement /></div>}
+          {activeTab === 'customers' && <div className="p-8"><CustomersManagement /></div>}
+          {activeTab === 'coupons' && <div className="p-8"><CouponsManagement /></div>}
+          {activeTab === 'settings' && <div className="p-8"><SettingsManagement /></div>}
         </div>
       </div>
     );
