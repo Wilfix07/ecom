@@ -9,6 +9,7 @@ import SettingsManagement from './SettingsManagement';
 import ProductModal from './ProductModal';
 import CouponModal from './CouponModal';
 import { useCurrency } from '../contexts/CurrencyContext';
+import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import ProductDetailModal from './ProductDetailModal';
 import { ModernClientStore } from './ModernClientStore';
@@ -17,7 +18,7 @@ import ReturnRefundPolicy from './ReturnRefundPolicy';
 import AboutUsPage from './AboutUsPage';
 import ContactPage from './ContactPage';
 import LoginModal from './LoginModal';
-import ProfilePage from './ProfilePage';
+import CustomerDashboard from './CustomerDashboard';
 import { Shield } from 'lucide-react';
 import { Badge } from './ui/badge';
 
@@ -44,7 +45,10 @@ const EcommercePlatform = () => {
   const [showContact, setShowContact] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null); // { userId, profile }
+  
+  // Get authentication state from context
+  const { user, profile, loading: authLoading } = useAuth();
+  const currentUser = user ? { userId: user.id, profile } : null;
   const [showCustomerDetail, setShowCustomerDetail] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [couponCode, setCouponCode] = useState('');
@@ -1457,8 +1461,7 @@ const EcommercePlatform = () => {
             onClose={() => {
               setShowLogin(false);
             }}
-            onLoginSuccess={(user) => {
-              setCurrentUser(user);
+            onLoginSuccess={() => {
               setShowLogin(false);
               setShowProfile(true);
             }}
@@ -2233,17 +2236,12 @@ const EcommercePlatform = () => {
     <>
       <ClientStore />
       
-      {/* Profile Page - rendered at main level */}
-      {showProfile && currentUser && (
-        <ProfilePage
-          userId={currentUser.userId}
-          userProfile={currentUser.profile}
-          onBack={() => {
+      {/* Customer Dashboard - rendered at main level */}
+      {showProfile && (
+        <CustomerDashboard
+          onClose={() => {
             setShowProfile(false);
           }}
-          onUpdateProfile={handleUpdateProfile}
-          onReorder={handleReorder}
-          onAddToCart={addToCart}
         />
       )}
     </>

@@ -1,233 +1,354 @@
-import React from 'react';
-import { Card } from './ui/card';
+import React, { useState } from 'react';
+import { X, User, ShoppingBag, Heart, Bell, History, Settings, Edit2, Save, LogOut, Package, CheckCircle, Clock, Truck } from 'lucide-react';
+import { Button } from './ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
-import { 
-  ShoppingCart, 
-  DollarSign, 
-  Package, 
-  TrendingUp, 
-  Star,
-  Truck,
-  CheckCircle,
-  Clock,
-  Heart
-} from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { useUserOrders } from '../hooks/useUserOrders';
+import { useBookmarks } from '../hooks/useBookmarks';
+import { useNotifications } from '../hooks/useNotifications';
+import { supabase } from '../lib/supabase';
 import { useCurrency } from '../contexts/CurrencyContext';
+import OrdersTab from './profile/OrdersTab';
+import BookmarksTab from './profile/BookmarksTab';
+import NotificationsTab from './profile/NotificationsTab';
 
-const CustomerDashboard = ({ userId, orders, favoriteProducts = [] }) => {
+const CustomerDashboard = ({ onClose }) => {
+  const { user, profile: userProfile, signOut } = useAuth();
+  const { orders, loading: ordersLoading } = useUserOrders(user?.id);
+  const { bookmarks, loading: bookmarksLoading } = useBookmarks(user?.id);
+  const { notifications, unreadCount, loading: notificationsLoading, markAsRead, markAllAsRead } = useNotifications(user?.id);
   const { getPriceString } = useCurrency();
+  
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedProfile, setEditedProfile] = useState({
+    full_name: userProfile?.full_name || '',
+    email: userProfile?.email || '',
+    phone: userProfile?.phone || '',
+    address: userProfile?.address || '',
+    city: userProfile?.city || '',
+    country: userProfile?.country || 'Haiti'
+  });
+  const [saving, setSaving] = useState(false);
 
-  // Calculate statistics
-  const totalOrders = orders?.length || 0;
-  const totalSpent = orders?.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0) || 0;
-  const avgOrderValue = totalOrders > 0 ? totalSpent / totalOrders : 0;
-  const pendingOrders = orders?.filter(o => o.status?.toLowerCase() === 'pending').length || 0;
-  const favoriteCount = favoriteProducts?.length || 0;
+  const handleUpdateProfile = async () => {
+    if (!user) return;
+    
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({
+          ...editedProfile,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
 
-  const stats = [
-    {
-      title: 'Kòmand Yo',
-      value: totalOrders,
-      subtitle: `${pendingOrders} an atant`,
-      icon: ShoppingCart,
-      color: 'from-blue-500 to-blue-600',
-      trend: '+12%'
-    },
-    {
-      title: 'Total Depanse',
-      value: getPriceString(totalSpent),
-      subtitle: `Moyèn: ${getPriceString(avgOrderValue)}`,
-      icon: DollarSign,
-      color: 'from-green-500 to-green-600',
-      trend: '+8%'
-    },
-    {
-      title: 'Atik Achte',
-      value: orders?.reduce((sum, order) => sum + (order.items || 0), 0) || 0,
-      subtitle: 'Nan tout kòmand yo',
-      icon: Package,
-      color: 'from-purple-500 to-purple-600',
-      trend: '+5%'
-    },
-    {
-      title: 'Favorit',
-      value: favoriteCount,
-      subtitle: 'Pwodui prefere ou',
-      icon: Heart,
-      color: 'from-pink-500 to-pink-600',
-      trend: '+3'
-    }
-  ];
-
-  const getStatusIcon = (status) => {
-    switch(status?.toLowerCase()) {
-      case 'delivered': return <CheckCircle size={16} className="text-green-600" />;
-      case 'shipped': return <Truck size={16} className="text-blue-600" />;
-      case 'processing': return <Clock size={16} className="text-yellow-600" />;
-      default: return <Package size={16} className="text-gray-600" />;
+      if (error) throw error;
+      
+      alert('Pwòfil ou mete ajou avèk siksè!');
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Erè nan mete ajou pwòfil ou');
+    } finally {
+      setSaving(false);
     }
   };
 
+  const handleLogout = async () => {
+    await signOut();
+    onClose();
+  };
+
+  const tabs = [
+    { id: 'dashboard', label: 'Dashboard', icon: User },
+    { id: 'orders', label: 'Kòmand', icon: ShoppingBag },
+    { id: 'bookmarks', label: 'Favorit', icon: Heart },
+    { id: 'notifications', label: 'Notifikasyon', icon: Bell, badge: unreadCount > 0 ? unreadCount : null }
+  ];
+
+  const stats = {
+    totalOrders: orders?.length || 0,
+    bookmarksCount: bookmarks?.length || 0,
+    unreadNotifications: unreadCount || 0,
+    recentOrders: orders?.slice(0, 3) || []
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={index} className="border-none shadow-lg hover:shadow-xl transition-shadow">
-              <div className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2 flex-1">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      {stat.title}
-                    </p>
-                    <h2 className="text-2xl font-bold text-foreground">
-                      {stat.value}
-                    </h2>
-                    <p className="text-xs text-muted-foreground">
-                      {stat.subtitle}
-                    </p>
+    <div className="fixed inset-0 bg-background z-50 overflow-y-auto">
+      {/* Header */}
+      <div className="sticky top-0 bg-white border-b border-border p-4 flex justify-between items-center z-10 shadow-sm">
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold text-foreground">Kont Mwen</h1>
+          {user && <Badge className="bg-green-100 text-green-700">Konekte</Badge>}
+        </div>
+        <div className="flex gap-2">
+          <Button variant="ghost" size="icon" onClick={handleLogout} title="DeKonekte">
+            <LogOut size={20} />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X size={24} />
+          </Button>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-6">
+        {/* Responsive Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          {/* Left Column: Profile Summary & Navigation */}
+          <div className="lg:col-span-3 space-y-4">
+            {/* Profile Card */}
+            <Card className="shadow-lg">
+              <CardContent className="p-6">
+                <div className="flex flex-col items-center space-y-4">
+                  {/* Avatar */}
+                  <div className="relative">
+                    {userProfile?.avatar_url ? (
+                      <img 
+                        src={userProfile.avatar_url} 
+                        alt="Profile" 
+                        className="w-24 h-24 rounded-full object-cover border-4 border-primary"
+                      />
+                    ) : (
+                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-3xl font-bold border-4 border-primary">
+                        {userProfile?.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                      </div>
+                    )}
                   </div>
-                  <div className={`bg-gradient-to-br ${stat.color} p-3 rounded-lg text-white`}>
-                    <Icon size={24} />
+
+                  {/* Name & Email */}
+                  <div className="text-center w-full">
+                    <h2 className="text-xl font-bold text-foreground">{userProfile?.full_name || 'Itilizatè'}</h2>
+                    <p className="text-sm text-muted-foreground">{userProfile?.email || ''}</p>
                   </div>
+
+                  {/* Edit Profile Button */}
+                  {!isEditing ? (
+                    <Button 
+                      variant="outline" 
+                      className="w-full gap-2"
+                      onClick={() => setIsEditing(true)}
+                    >
+                      <Edit2 size={16} />
+                      Modifye Pwòfil
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant="default" 
+                      className="w-full gap-2"
+                      onClick={handleUpdateProfile}
+                      disabled={saving}
+                    >
+                      <Save size={16} />
+                      {saving ? 'An sime...' : 'Sove Chanjman'}
+                    </Button>
+                  )}
                 </div>
-              </div>
+              </CardContent>
             </Card>
-          );
-        })}
-      </div>
 
-      {/* Recent Orders & Favorites */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Orders */}
-        <Card className="shadow-lg">
-          <div className="p-6 border-b border-border">
-            <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-              <ShoppingCart size={20} />
-              Dènye Kòmand
-            </h3>
+            {/* Quick Stats */}
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-lg">Estatistik Rapid</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Total Kòmand</span>
+                  <Badge variant="secondary">{stats.totalOrders}</Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Favorit</span>
+                  <Badge variant="secondary">{stats.bookmarksCount}</Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Notifikasyon</span>
+                  <Badge variant="secondary">{stats.unreadNotifications}</Badge>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Profile Details Card - Only when editing */}
+            {isEditing && (
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-lg">Enfòmasyon</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Non Konplè</label>
+                    <input
+                      type="text"
+                      value={editedProfile.full_name}
+                      onChange={(e) => setEditedProfile({...editedProfile, full_name: e.target.value})}
+                      className="w-full px-3 py-2 border border-border rounded-lg text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Email</label>
+                    <input
+                      type="email"
+                      value={editedProfile.email}
+                      onChange={(e) => setEditedProfile({...editedProfile, email: e.target.value})}
+                      className="w-full px-3 py-2 border border-border rounded-lg text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Telefòn</label>
+                    <input
+                      type="tel"
+                      value={editedProfile.phone}
+                      onChange={(e) => setEditedProfile({...editedProfile, phone: e.target.value})}
+                      className="w-full px-3 py-2 border border-border rounded-lg text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Adrès</label>
+                    <input
+                      type="text"
+                      value={editedProfile.address}
+                      onChange={(e) => setEditedProfile({...editedProfile, address: e.target.value})}
+                      className="w-full px-3 py-2 border border-border rounded-lg text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Vil</label>
+                    <input
+                      type="text"
+                      value={editedProfile.city}
+                      onChange={(e) => setEditedProfile({...editedProfile, city: e.target.value})}
+                      className="w-full px-3 py-2 border border-border rounded-lg text-sm"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
-          <div className="p-6">
-            {orders && orders.length > 0 ? (
-              <div className="space-y-3">
-                {orders.slice(0, 5).map(order => (
-                  <div key={order.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="mt-1">
-                        {getStatusIcon(order.status)}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-sm text-foreground">#{order.id}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(order.order_date).toLocaleDateString('ht-HT', {
-                            day: 'numeric',
-                            month: 'short'
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-sm text-foreground">{getPriceString(order.total)}</p>
-                      <Badge 
-                        className={
-                          order.status?.toLowerCase() === 'delivered' ? 'bg-green-100 text-green-700' :
-                          order.status?.toLowerCase() === 'shipped' ? 'bg-blue-100 text-blue-700' :
-                          order.status?.toLowerCase() === 'processing' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-gray-100 text-gray-700'
-                        }
-                      >
-                        {order.status?.toLowerCase() === 'delivered' ? 'Livre' :
-                         order.status?.toLowerCase() === 'shipped' ? 'Anvolè' :
-                         order.status?.toLowerCase() === 'processing' ? 'Nan Tretman' :
-                         'An Jantèy'}
+
+          {/* Right Column: Content Area */}
+          <div className="lg:col-span-9 space-y-4">
+            {/* Tabs Navigation */}
+            <div className="bg-white rounded-xl shadow-md p-2 flex flex-wrap gap-2">
+              {tabs.map(tab => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-all ${
+                      activeTab === tab.id
+                        ? 'bg-primary text-primary-foreground shadow-md'
+                        : 'bg-transparent hover:bg-muted text-muted-foreground'
+                    }`}
+                  >
+                    <Icon size={18} />
+                    <span className="font-medium">{tab.label}</span>
+                    {tab.badge && (
+                      <Badge variant="destructive" className="ml-1">
+                        {tab.badge}
                       </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <ShoppingCart size={48} className="mx-auto mb-4 opacity-50" />
-                <p>Pa gen kòmand ankò</p>
-              </div>
-            )}
-          </div>
-        </Card>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
 
-        {/* Favorite Products */}
-        <Card className="shadow-lg">
-          <div className="p-6 border-b border-border">
-            <h3 className="text-lg font-bold text-foreground flex items-center gap-2">
-              <Heart size={20} />
-              Pwodui Favorit
-            </h3>
-          </div>
-          <div className="p-6">
-            {favoriteProducts && favoriteProducts.length > 0 ? (
-              <div className="space-y-3">
-                {favoriteProducts.slice(0, 5).map(product => (
-                  <div key={product.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                    <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/40 rounded-lg flex items-center justify-center text-2xl">
-                      {product.image || '📦'}
+            {/* Tab Content */}
+            <div className="min-h-[500px]">
+              {activeTab === 'dashboard' && (
+                <Card className="shadow-lg">
+                  <CardHeader>
+                    <CardTitle>Byenvini nan Kont Ou</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      <Card className="bg-gradient-to-br from-blue-50 to-blue-100">
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-muted-foreground">Kòmand Totale</p>
+                              <p className="text-2xl font-bold">{stats.totalOrders}</p>
+                            </div>
+                            <ShoppingBag size={32} className="text-blue-600" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card className="bg-gradient-to-br from-pink-50 to-pink-100">
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-muted-foreground">Favorit</p>
+                              <p className="text-2xl font-bold">{stats.bookmarksCount}</p>
+                            </div>
+                            <Heart size={32} className="text-pink-600" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card className="bg-gradient-to-br from-purple-50 to-purple-100">
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-muted-foreground">Notifikasyon</p>
+                              <p className="text-2xl font-bold">{stats.unreadNotifications}</p>
+                            </div>
+                            <Bell size={32} className="text-purple-600" />
+                          </div>
+                        </CardContent>
+                      </Card>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm text-foreground truncate">
-                        {product.name}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <div className="flex items-center gap-1">
-                          <Star size={12} className="text-yellow-500 fill-yellow-500" />
-                          <span className="text-xs text-muted-foreground">{product.rating}</span>
+
+                    {/* Recent Orders */}
+                    {stats.recentOrders.length > 0 && (
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4">Dènye Kòmand</h3>
+                        <div className="space-y-3">
+                          {stats.recentOrders.map((order) => (
+                            <Card key={order.id} className="border-l-4 border-l-primary">
+                              <CardContent className="p-4">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <p className="font-semibold">Kòmand #{order.id}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                      {new Date(order.order_date).toLocaleDateString('fr-FR')}
+                                    </p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-bold">{getPriceString(order.total)}</p>
+                                    {order.status === 'delivered' && <CheckCircle className="text-green-600 inline" size={16} />}
+                                    {order.status === 'shipped' && <Truck className="text-blue-600 inline" size={16} />}
+                                    {order.status === 'processing' && <Clock className="text-yellow-600 inline" size={16} />}
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
                         </div>
-                        <span className="text-xs font-semibold text-primary">
-                          {getPriceString(product.price)}
-                        </span>
                       </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <Heart size={48} className="mx-auto mb-4 opacity-50" />
-                <p>Pa gen pwodui favorit</p>
-                <p className="text-sm mt-2">Ajoute pwodui w renmen yo!</p>
-              </div>
-            )}
-          </div>
-        </Card>
-      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
-      {/* Activity Summary */}
-      <Card className="shadow-lg bg-gradient-to-br from-primary/5 to-primary/10">
-        <div className="p-6">
-          <h3 className="text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-            <TrendingUp size={20} />
-            Rezime Aktivite
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center">
-              <p className="text-3xl font-bold text-primary">{totalOrders}</p>
-              <p className="text-sm text-muted-foreground">Total Kòmand</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-green-600">{getPriceString(totalSpent)}</p>
-              <p className="text-sm text-muted-foreground">Total Depanse</p>
-            </div>
-            <div className="text-center">
-              <p className="text-3xl font-bold text-purple-600">
-                {totalOrders > 0 ? Math.round(avgOrderValue) : 0}
-              </p>
-              <p className="text-sm text-muted-foreground">Moyèn Depans</p>
+              {activeTab === 'orders' && <OrdersTab userId={user?.id} />}
+              {activeTab === 'bookmarks' && <BookmarksTab userId={user?.id} />}
+              {activeTab === 'notifications' && (
+                <NotificationsTab 
+                  userId={user?.id}
+                  onMarkAsRead={markAsRead}
+                  onMarkAllAsRead={markAllAsRead}
+                />
+              )}
             </div>
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 };
 
 export default CustomerDashboard;
-

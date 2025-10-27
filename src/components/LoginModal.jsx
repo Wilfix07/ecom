@@ -3,14 +3,12 @@ import { X, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card } from './ui/card';
-import UserProfile from './UserProfile';
 import { supabase } from '../lib/supabase';
 
 const LoginModal = ({ onClose, onLoginSuccess }) => {
-  const [showProfile, setShowProfile] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState(null);
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -24,71 +22,103 @@ const LoginModal = ({ onClose, onLoginSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     
     try {
       if (isLogin) {
-        // Login logic - Simplified for now
-        // Generate a simple user ID (In production, use proper auth)
-        const userId = `user_${Date.now()}`;
+        // Login logic with Supabase Auth
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password
+        });
+
+        if (authError) {
+          alert(`Erè: ${authError.message}`);
+          setLoading(false);
+          return;
+        }
         
-        // Fetch or create user profile
-        let profile = null;
-        const { data: profileData, error: profileError } = await supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('user_id', userId)
-          .maybeSingle();
-        
-        if (profileError && profileError.code !== 'PGRST116') {
-          console.warn('Error fetching profile:', profileError);
-        } else if (profileData) {
-          profile = profileData;
+        // Create profile if doesn't exist
+        if (authData.user) {
+          const { data: profileData } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('user_id', authData.user.id)
+            .maybeSingle();
+          
+          if (!profileData) {
+            await supabase
+              .from('user_profiles')
+              .insert([{
+                user_id: authData.user.id,
+                email: authData.user.email,
+                full_name: authData.user.user_metadata?.full_name || authData.user.email.split('@')[0]
+              }]);
+          }
         }
         
         if (onLoginSuccess) {
-          onLoginSuccess({ userId, profile });
+          onLoginSuccess();
         }
-        
-        setCurrentUserId(userId);
-        setShowProfile(true);
       } else {
         // Registration logic
         if (formData.password !== formData.confirmPassword) {
           alert('Modpas yo pa menm!');
+          setLoading(false);
           return;
         }
         
-        // Generate user ID
-        const userId = `user_${Date.now()}`;
-        
-        // Create user profile
-        let profile = null;
-        const { data: profileData, error: insertError } = await supabase
-          .from('user_profiles')
-          .insert([{
-            user_id: userId,
-            email: formData.email,
-            full_name: formData.name
-          }])
-          .select()
-          .maybeSingle();
-        
-        if (insertError) {
-          console.error('Error creating profile:', insertError);
-        } else if (profileData) {
-          profile = profileData;
+        if (formData.password.length < 6) {
+          alert('Modpas la dwe gen omwen 6 karaktè!');
+          setLoading(false);
+          return;
         }
         
-        if (onLoginSuccess) {
-          onLoginSuccess({ userId, profile });
+        // Sign up with Supabase Auth
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              full_name: formData.name
+            }
+          }
+        });
+
+        if (authError) {
+          alert(`Erè: ${authError.message}`);
+          setLoading(false);
+          return;
         }
         
-        setCurrentUserId(userId);
-        setShowProfile(true);
+        if (authData.user) {
+          // Create user profile
+          const { error: insertError } = await supabase
+            .from('user_profiles')
+            .insert([{
+              user_id: authData.user.id,
+              email: authData.user.email,
+              full_name: formData.name
+            }]);
+          
+          if (insertError) {
+            console.error('Error creating profile:', insertError);
+          }
+        }
+        
+        alert('Kont ou te kreye avèk siksè! Tanpri konekte ak kont ou.');
+        // Switch to login mode for user to sign in
+        setIsLogin(true);
+        // Clear form
+        setFormData({ email: formData.email, password: '', name: '', confirmPassword: '' });
+        setLoading(false);
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Erè nan pran aksyon');
+      alert(`Erè: ${error.message || 'Erè nan pran aksyon'}`);
+      setLoading(false);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -96,19 +126,6 @@ const LoginModal = ({ onClose, onLoginSuccess }) => {
     console.log(`${provider} login`);
     alert(`Fonksyon ${provider} ap vini byento!`);
   };
-
-  if (showProfile && currentUserId) {
-    return (
-      <UserProfile 
-        userId={currentUserId}
-        onClose={() => {
-          setShowProfile(false);
-          setCurrentUserId(null);
-          onClose();
-        }}
-      />
-    );
-  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -221,8 +238,9 @@ const LoginModal = ({ onClose, onLoginSuccess }) => {
               type="submit"
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
               size="lg"
+              disabled={loading}
             >
-              {isLogin ? 'Konekte' : 'Kreye Kont'}
+              {loading ? 'Nan pran aksyon...' : (isLogin ? 'Konekte' : 'Kreye Kont')}
             </Button>
           </form>
 

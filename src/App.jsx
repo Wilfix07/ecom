@@ -1,12 +1,14 @@
-import React from 'react';
 import { CurrencyProvider } from './contexts/CurrencyContext';
+import { AuthProvider } from './contexts/AuthContext';
 import EcommercePlatform from './components/EcommercePlatform';
 
 function App() {
   return (
-    <CurrencyProvider>
-      <EcommercePlatform />
-    </CurrencyProvider>
+    <AuthProvider>
+      <CurrencyProvider>
+        <EcommercePlatform />
+      </CurrencyProvider>
+    </AuthProvider>
   );
 }
 
