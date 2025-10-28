@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Package, Eye, RefreshCw, Calendar, DollarSign, ShoppingBag, Clock, Truck, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -10,6 +11,7 @@ import OrderDetailModal from './OrderDetailModal';
 const OrdersTab = ({ userId, onReorder }) => {
   const { orders, loading } = useUserOrders(userId);
   const { getPriceString } = useCurrency();
+  const navigate = useNavigate();
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showOrderDetail, setShowOrderDetail] = useState(false);
 
@@ -79,7 +81,9 @@ const OrdersTab = ({ userId, onReorder }) => {
             <Package size={64} className="mx-auto mb-4 text-muted-foreground opacity-50" />
             <h3 className="text-xl font-semibold text-foreground mb-2">Pa gen kòmand ankò</h3>
             <p className="text-muted-foreground mb-6">Kòmanse achte pou wè kòmand ou yo isi a!</p>
-            <Button>Kontinye Achte</Button>
+            <Button onClick={() => navigate('/products')} className="bg-orange-500 hover:bg-orange-600">
+              Kontinye Achte
+            </Button>
           </div>
         </CardContent>
       </Card>

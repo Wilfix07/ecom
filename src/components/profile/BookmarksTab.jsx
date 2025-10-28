@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Heart, ShoppingCart, Trash2, Star, Package } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -9,6 +10,7 @@ import { useCurrency } from '../../contexts/CurrencyContext';
 const BookmarksTab = ({ userId, onAddToCart }) => {
   const { bookmarks, loading, removeBookmark } = useBookmarks(userId);
   const { getPriceString } = useCurrency();
+  const navigate = useNavigate();
 
   const handleRemove = async (bookmarkId) => {
     const result = await removeBookmark(bookmarkId);
@@ -48,7 +50,9 @@ const BookmarksTab = ({ userId, onAddToCart }) => {
             <Heart size={64} className="mx-auto mb-4 text-muted-foreground opacity-50" />
             <h3 className="text-xl font-semibold text-foreground mb-2">Pa gen favorit ankò</h3>
             <p className="text-muted-foreground mb-6">Ajoute pwodui ou renmen yo nan lis favorit ou!</p>
-            <Button>Eksplore Pwodui</Button>
+            <Button onClick={() => navigate('/products')} className="bg-orange-500 hover:bg-orange-600">
+              Eksplore Pwodui
+            </Button>
           </div>
         </CardContent>
       </Card>

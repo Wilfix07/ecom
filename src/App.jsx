@@ -19,6 +19,7 @@ import BlogManagement from './components/BlogManagement';
 import ProtectedRoute from './components/ProtectedRoute';
 import SEO from './components/SEO';
 import AnalyticsTracker from './components/AnalyticsTracker';
+import CustomerProfileDashboard from './components/CustomerProfileDashboard';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 
@@ -42,9 +43,11 @@ function App() {
               <CustomerSupportChat />
               <Routes>
                 <Route path="/" element={<EcommercePlatform />} />
-                <Route path="/products" element={<ProductsListPage />} />
-                <Route path="/products/:id" element={<ProductDetailPage />} />
-                <Route path="/blog" element={<BlogPage />} />
+              <Route path="/products" element={<ProductsListPage />} />
+              <Route path="/products/:id" element={<ProductDetailPage />} />
+              <Route path="/dashboard" element={<CustomerProfileDashboard />} />
+              <Route path="/account" element={<CustomerProfileDashboard />} />
+              <Route path="/blog" element={<BlogPage />} />
                 <Route path="/blog/:slug" element={<BlogDetail />} />
                 <Route 
                   path="/admin/blog" 
