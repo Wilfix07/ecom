@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, Send, X, Minimize2 } from 'lucide-react';
+import { MessageSquare, Send, X, Minimize2, Bot } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { chatService } from '../services/chatService';
 import { aiChatbotService } from '../services/aiChatbotService';

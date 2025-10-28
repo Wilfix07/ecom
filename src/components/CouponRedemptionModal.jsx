@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Tag, Percent, DollarSign, Calendar, Users } from 'lucide-react';
+import { X, Tag, Percent, DollarSign, Calendar, Users, Coins } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import usePointsStore from '../store/usePointsStore';

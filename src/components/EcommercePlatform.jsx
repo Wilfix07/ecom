@@ -428,8 +428,51 @@ const EcommercePlatform = () => {
     setShowCustomerDetail(true);
   };
 
-  const handleNotifyCustomer = (customer) => {
-    alert(`Notifikasyon ap voye bay ${customer.name} (${customer.email})`);
+  const handleNotifyCustomer = async (customer) => {
+    // Show a prompt to get notification details
+    const notificationTitle = prompt('Titre Notifikasyon:', 'Nouvo Mesaj');
+    if (!notificationTitle) return;
+    
+    const notificationBody = prompt('Mesaj:', `Bonjou ${customer.name}, nou gen yon mesaj pou ou.`);
+    if (!notificationBody) return;
+
+    try {
+      // Create notification in database
+      const { data, error } = await supabase
+        .from('notifications')
+        .insert([
+          {
+            user_id: customer.email, // Using email as user identifier
+            title: notificationTitle,
+            body: notificationBody,
+            type: 'system',
+            is_read: false,
+            channel: 'in_app'
+          }
+        ])
+        .select();
+
+      if (error) throw error;
+
+      // Also log to email_notifications table for tracking
+      await supabase
+        .from('email_notifications')
+        .insert([
+          {
+            user_id: customer.email,
+            email_type: 'delivery_confirmation', // Using this as general notification
+            subject: notificationTitle,
+            body: notificationBody,
+            status: 'sent',
+            sent_at: new Date().toISOString()
+          }
+        ]);
+
+      alert(`✅ Notifikasyon voye bay ${customer.name} (${customer.email})`);
+    } catch (error) {
+      console.error('Error sending notification:', error);
+      alert(`❌ Erè nan voye notifikasyon: ${error.message}`);
+    }
   };
 
   const handleUpdateProfile = async (updatedProfile) => {
