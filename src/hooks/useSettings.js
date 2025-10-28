@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 
 export function useSettings() {
@@ -20,14 +20,12 @@ export function useSettings() {
         .order('category, label');
 
       if (error) {
-        console.error('Supabase error:', error);
         throw error;
       }
       
       
       setSettings(data || []);
     } catch (error) {
-      console.error('Error fetching settings:', error);
       setError(error.message);
     } finally {
       setLoading(false);
@@ -50,7 +48,6 @@ export function useSettings() {
       
       return { success: true };
     } catch (error) {
-      console.error('Error updating setting:', error);
       return { success: false, error: error.message };
     }
   }
@@ -87,21 +84,20 @@ export function useSettings() {
 
       return { success: true };
     } catch (error) {
-      console.error('Error updating settings:', error);
       return { success: false, error: error.message };
     }
   }
 
   // Helper to get setting by key
-  function getSetting(key) {
+  const getSetting = useCallback((key) => {
     return settings.find(s => s.key === key);
-  }
+  }, [settings]);
 
   // Helper to get setting value by key
-  function getSettingValue(key, defaultValue = '') {
+  const getSettingValue = useCallback((key, defaultValue = '') => {
     const setting = getSetting(key);
     return setting ? setting.value : defaultValue;
-  }
+  }, [getSetting]);
 
   return { 
     settings, 

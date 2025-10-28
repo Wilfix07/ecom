@@ -33,13 +33,10 @@ const ProductModal = ({ product, onClose, onSave, categories = [] }) => {
 
     try {
       setUploadingImage(true);
-      console.log('Starting image upload for file:', file.name);
 
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `products/${fileName}`;
-
-      console.log('Uploading to path:', filePath);
 
       // Upload to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -50,24 +47,18 @@ const ProductModal = ({ product, onClose, onSave, categories = [] }) => {
         });
 
       if (uploadError) {
-        console.error('Upload error:', uploadError);
         throw uploadError;
       }
-
-      console.log('Upload successful:', uploadData);
 
       // Get public URL
       const { data: urlData } = supabase.storage
         .from('product-media')
         .getPublicUrl(filePath);
 
-      console.log('Public URL:', urlData.publicUrl);
-
       // Update form data with uploaded image URL
       setFormData({ ...formData, image: urlData.publicUrl });
       alert('Imaj chaje avèk siksè!');
     } catch (error) {
-      console.error('Error uploading image:', error);
       alert(`Erè nan chaje imaj la: ${error.message}`);
     } finally {
       setUploadingImage(false);

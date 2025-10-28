@@ -31,7 +31,6 @@ export function useOrders() {
       setOrders(formattedData);
     } catch (error) {
       setError(error.message);
-      console.error('Error fetching orders:', error);
     } finally {
       setLoading(false);
     }

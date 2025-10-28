@@ -218,7 +218,7 @@ const ProductDetailModal = ({ product, onClose, onAddToCart, onToggleWishlist, i
                         title: product.name,
                         text: product.description || `Gade ${product.name}`,
                         url: window.location.href
-                      }).catch(err => console.log('Error sharing:', err));
+                      }).catch(() => {});
                     } else {
                       // Fallback: copy to clipboard
                       navigator.clipboard.writeText(window.location.href).then(() => {

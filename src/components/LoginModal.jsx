@@ -123,7 +123,6 @@ const LoginModal = ({ onClose, onLoginSuccess }) => {
   };
 
   const handleSocialLogin = (provider) => {
-    console.log(`${provider} login`);
     alert(`Fonksyon ${provider} ap vini byento!`);
   };
 

@@ -31,7 +31,6 @@ export function useProducts() {
       setProducts(formattedData);
     } catch (error) {
       setError(error.message);
-      console.error('Error fetching products:', error);
     } finally {
       setLoading(false);
     }

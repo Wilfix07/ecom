@@ -50,7 +50,6 @@ const CustomerDashboard = ({ onClose }) => {
       alert('Pwòfil ou mete ajou avèk siksè!');
       setIsEditing(false);
     } catch (error) {
-      console.error('Error updating profile:', error);
       alert('Erè nan mete ajou pwòfil ou');
     } finally {
       setSaving(false);

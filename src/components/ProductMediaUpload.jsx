@@ -17,7 +17,6 @@ const ProductMediaUpload = ({ onMediaChange, existingMedia = {} }) => {
 
     try {
       setUploading(true);
-      console.log('Uploading file to Supabase Storage:', file.name);
 
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;

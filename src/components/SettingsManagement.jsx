@@ -8,11 +8,6 @@ const SettingsManagement = () => {
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState(null);
 
-  // Debug logging
-  console.log('SettingsManagement - Loading:', loading);
-  console.log('SettingsManagement - Settings count:', settings.length);
-  console.log('SettingsManagement - Error:', error);
-
   // Group settings by category
   const groupedSettings = settings.reduce((acc, setting) => {
     if (!acc[setting.category]) {

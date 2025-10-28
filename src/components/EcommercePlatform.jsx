@@ -77,7 +77,7 @@ const EcommercePlatform = () => {
       const rate = getSettingValue('exchange_rate_htg_to_usd', '135');
       setExchangeRate(parseFloat(rate));
     }
-  }, [settings, getSettingValue]);
+  }, [settings, getSettingValue, setExchangeRate]);
   
   // Get store settings from database
   const storeName = getSettingValue('store_name', 'DEB Online Store');

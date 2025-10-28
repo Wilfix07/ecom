@@ -30,7 +30,6 @@ export function useCustomers() {
       setCustomers(formattedData);
     } catch (error) {
       setError(error.message);
-      console.error('Error fetching customers:', error);
     } finally {
       setLoading(false);
     }

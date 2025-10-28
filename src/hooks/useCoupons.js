@@ -29,7 +29,6 @@ export function useCoupons() {
       setCoupons(formattedData);
     } catch (error) {
       setError(error.message);
-      console.error('Error fetching coupons:', error);
     } finally {
       setLoading(false);
     }
