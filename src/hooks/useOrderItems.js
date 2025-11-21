@@ -26,15 +26,38 @@ export function useOrderItems(orderId) {
             id,
             name,
             image,
+            image_url,
             image_1,
+            image_2,
+            image_3,
             stock,
-            category
+            stock_quantity,
+            category,
+            categories (
+              name
+            )
           )
         `)
         .eq('order_id', orderId);
 
       if (error) throw error;
-      setOrderItems(data || []);
+      
+      // Map products to include category name and handle column mapping
+      const formattedData = (data || []).map(item => ({
+        ...item,
+        products: item.products ? {
+          ...item.products,
+          image: item.products.image_url || item.products.image || '📦',
+          image_1: item.products.image_1 || null,
+          image_2: item.products.image_2 || null,
+          image_3: item.products.image_3 || null,
+          stock: item.products.stock_quantity || item.products.stock || 0,
+          category: item.products.categories?.name || item.products.category || 'Uncategorized',
+          categories: undefined, // Remove nested object
+        } : null
+      }));
+      
+      setOrderItems(formattedData);
     } catch (error) {
       setError(error.message);
       console.error('Error fetching order items:', error);

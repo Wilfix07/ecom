@@ -73,7 +73,7 @@ const ProductModal = ({ product, onClose, onSave, categories = [] }) => {
         category: product.category || 'Electronics',
         image: product.image || '📱',
         rating: product.rating || '0',
-        reviews: product.reviews || '0',
+        reviews: product.reviews || product.review_count || '0',
         stock: product.stock || '0',
         sales: product.sales || '0',
         discount: product.discount || '0',
@@ -92,13 +92,15 @@ const ProductModal = ({ product, onClose, onSave, categories = [] }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     
+    const reviewsValue = parseInt(formData.reviews) || 0;
     const productData = {
       name: formData.name,
       price: parseFloat(formData.price),
       category: formData.category,
       image: formData.image,
       rating: parseFloat(formData.rating) || 0,
-      reviews: parseInt(formData.reviews) || 0,
+      reviews: reviewsValue,
+      review_count: reviewsValue, // Keep both columns in sync
       stock: parseInt(formData.stock),
       sales: parseInt(formData.sales) || 0,
       discount: parseInt(formData.discount) || 0,

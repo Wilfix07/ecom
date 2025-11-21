@@ -29,10 +29,19 @@ export function useBookmarks(userId) {
             name,
             price,
             image,
+            image_url,
             image_1,
+            image_2,
+            image_3,
             stock,
+            stock_quantity,
             rating,
+            reviews,
+            review_count,
             category,
+            categories (
+              name
+            ),
             discount
           )
         `)
@@ -41,9 +50,20 @@ export function useBookmarks(userId) {
 
       if (error) throw error;
 
+      // Map products to include category name and handle column mapping
       const formattedData = data.map(bookmark => ({
         ...bookmark,
-        product: bookmark.products
+        product: bookmark.products ? {
+          ...bookmark.products,
+          image: bookmark.products.image_url || bookmark.products.image || '📦',
+          image_1: bookmark.products.image_1 || null,
+          image_2: bookmark.products.image_2 || null,
+          image_3: bookmark.products.image_3 || null,
+          stock: bookmark.products.stock_quantity || bookmark.products.stock || 0,
+          reviews: bookmark.products.review_count || bookmark.products.reviews || 0,
+          category: bookmark.products.categories?.name || bookmark.products.category || 'Uncategorized',
+          categories: undefined, // Remove nested object
+        } : null
       }));
 
       setBookmarks(formattedData);

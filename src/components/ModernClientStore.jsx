@@ -39,10 +39,47 @@ export const ModernClientStore = ({
 }) => {
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
+  // Map French category names to actual database category names
+  const categoryMap = {
+    'Tout': 'all',
+    'all': 'all',
+    // French names to database categories
+    'Électronique': 'Electronics',
+    'Mode': 'Women\'s Fashion', // Default to Women's Fashion
+    'Chaussures': 'Jewelry & Accessories', // Closest match
+    'Maison': 'Home & Kitchen',
+    'Beauté': 'Beauty & Health',
+    'Sportif': 'Sports & Outdoors',
+    // Also handle Haitian Creole names (for backward compatibility)
+    'Electronics': 'Electronics',
+    'Fashion': 'Women\'s Fashion',
+    'Soulye': 'Jewelry & Accessories',
+    'Kay': 'Home & Kitchen',
+    'Bote': 'Beauty & Health',
+    'Espò': 'Sports & Outdoors',
+    // Direct database category names
+    'Women\'s Fashion': 'Women\'s Fashion',
+    'Men\'s Fashion': 'Men\'s Fashion',
+    'Home & Kitchen': 'Home & Kitchen',
+    'Beauty & Health': 'Beauty & Health',
+    'Jewelry & Accessories': 'Jewelry & Accessories',
+    'Electronics': 'Electronics',
+    'Toys & Games': 'Toys & Games',
+    'Sports & Outdoors': 'Sports & Outdoors',
+    // Legacy names
+    'Shoes': 'Jewelry & Accessories',
+    'Home': 'Home & Kitchen',
+    'Beauty': 'Beauty & Health',
+    'Sports': 'Sports & Outdoors'
+  };
+
+  // Get the database category name from the selected category
+  const dbCategory = categoryMap[selectedCategory] || selectedCategory;
+
   // Filter products by selected category
-  const filteredProducts = selectedCategory === 'all' || selectedCategory === 'Tout'
+  const filteredProducts = dbCategory === 'all'
     ? products
-    : products.filter(p => p.category === selectedCategory);
+    : products.filter(p => p.category === dbCategory);
 
   // Featured products (highest rated)
   const featuredProducts = [...filteredProducts]
@@ -91,15 +128,24 @@ export const ModernClientStore = ({
         setSearchQuery={setSearchQuery}
         currency={currency}
         onCurrencyChange={setCurrency}
-        selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
+        selectedCategory={selectedCategory === 'all' ? 'Tout' : selectedCategory}
+        onCategoryChange={(category) => {
+          // Convert 'all' to 'Tout' for display consistency
+          // The header passes 'all' for 'Tout', or Haitian Creole names for others
+          const displayCategory = category === 'all' ? 'Tout' : category;
+          setSelectedCategory(displayCategory);
+        }}
         setShowAboutUs={setShowAboutUs}
         setShowContact={setShowContact}
       />
 
       <main className="container mx-auto px-4 py-6 space-y-8">
         {/* Hero Banner */}
-        <PromoBanner />
+        <PromoBanner 
+          onCategoryClick={(category) => {
+            setSelectedCategory(category);
+          }}
+        />
 
         {/* Feature Cards */}
         <PromoFeatures />
@@ -271,8 +317,8 @@ export const ModernClientStore = ({
         {/* All Products Section */}
         <section id="all-products">
           <SectionHeader
-            title={selectedCategory === 'all' || selectedCategory === 'Tout' 
-              ? "📦 Tout Pwodui" 
+            title={selectedCategory === 'all' || selectedCategory === 'Tout' || !selectedCategory
+              ? "📦 Tout Pwodui"
               : `📦 ${selectedCategory}`
             }
             subtitle={`${filteredProducts.length} pwodui disponib`}

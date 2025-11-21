@@ -41,6 +41,74 @@ export const ModernAdminDashboard = ({ products = [], orders = [], customers = [
     return joinedDate.getMonth() === currentMonth && joinedDate.getFullYear() === currentYear;
   }).length;
 
+  // Calculate trends (current month vs previous month)
+  const getCurrentMonthData = (dateField) => {
+    return orders.filter(o => {
+      const date = new Date(o[dateField] || o.order_date || o.created_at);
+      return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+    });
+  };
+
+  const getPreviousMonthData = (dateField) => {
+    const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+    return orders.filter(o => {
+      const date = new Date(o[dateField] || o.order_date || o.created_at);
+      return date.getMonth() === prevMonth && date.getFullYear() === prevYear;
+    });
+  };
+
+  // Revenue trend
+  const currentMonthRevenue = getCurrentMonthData('order_date').reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+  const previousMonthRevenue = getPreviousMonthData('order_date').reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+  const revenueTrend = previousMonthRevenue > 0 
+    ? ((currentMonthRevenue - previousMonthRevenue) / previousMonthRevenue * 100).toFixed(1)
+    : currentMonthRevenue > 0 ? 100 : 0;
+  const revenueTrendUp = revenueTrend >= 0;
+
+  // Orders trend
+  const currentMonthOrders = getCurrentMonthData('order_date').length;
+  const previousMonthOrders = getPreviousMonthData('order_date').length;
+  const ordersTrend = previousMonthOrders > 0 
+    ? ((currentMonthOrders - previousMonthOrders) / previousMonthOrders * 100).toFixed(1)
+    : currentMonthOrders > 0 ? 100 : 0;
+  const ordersTrendUp = ordersTrend >= 0;
+
+  // Products trend (compare current vs previous month products added)
+  const currentMonthProducts = products.filter(p => {
+    const date = new Date(p.created_at || p.updated_at);
+    return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+  }).length;
+  const previousMonthProducts = products.filter(p => {
+    const date = new Date(p.created_at || p.updated_at);
+    const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+    return date.getMonth() === prevMonth && date.getFullYear() === prevYear;
+  }).length;
+  const productsTrend = previousMonthProducts > 0 
+    ? ((currentMonthProducts - previousMonthProducts) / previousMonthProducts * 100).toFixed(1)
+    : currentMonthProducts > 0 ? 100 : 0;
+  const productsTrendUp = productsTrend >= 0;
+
+  // Customers trend
+  const previousMonthCustomers = customers.filter(c => {
+    const joinedDate = new Date(c.joined);
+    const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+    return joinedDate.getMonth() === prevMonth && joinedDate.getFullYear() === prevYear;
+  }).length;
+  const customersTrend = previousMonthCustomers > 0 
+    ? ((newCustomers - previousMonthCustomers) / previousMonthCustomers * 100).toFixed(1)
+    : newCustomers > 0 ? 100 : 0;
+  const customersTrendUp = customersTrend >= 0;
+
+  // Calculate average order value trend
+  const currentMonthAvgOrder = currentMonthOrders > 0 ? currentMonthRevenue / currentMonthOrders : 0;
+  const previousMonthAvgOrder = previousMonthOrders > 0 ? previousMonthRevenue / previousMonthOrders : 0;
+  const avgOrderTrend = previousMonthAvgOrder > 0 
+    ? ((currentMonthAvgOrder - previousMonthAvgOrder) / previousMonthAvgOrder * 100).toFixed(1)
+    : currentMonthAvgOrder > 0 ? 100 : 0;
+
   const statsCards = [
     {
       title: 'Total Revni',
@@ -48,8 +116,8 @@ export const ModernAdminDashboard = ({ products = [], orders = [], customers = [
       subtitle: `Moyèn: ${getPriceString(averageOrderValue)}`,
       icon: DollarSign,
       color: 'bg-gradient-to-br from-blue-500 to-blue-600',
-      trend: '+12.5%',
-      trendUp: true,
+      trend: `${revenueTrendUp ? '+' : ''}${revenueTrend}%`,
+      trendUp: revenueTrendUp,
     },
     {
       title: 'Kòmand',
@@ -57,8 +125,8 @@ export const ModernAdminDashboard = ({ products = [], orders = [], customers = [
       subtitle: `${pendingOrders} an atant`,
       icon: Package,
       color: 'bg-gradient-to-br from-green-500 to-green-600',
-      trend: '+8.2%',
-      trendUp: true,
+      trend: `${ordersTrendUp ? '+' : ''}${ordersTrend}%`,
+      trendUp: ordersTrendUp,
     },
     {
       title: 'Pwodui',
@@ -66,8 +134,8 @@ export const ModernAdminDashboard = ({ products = [], orders = [], customers = [
       subtitle: `${lowStockProducts} ba stock`,
       icon: Package,
       color: 'bg-gradient-to-br from-purple-500 to-purple-600',
-      trend: '-2.4%',
-      trendUp: false,
+      trend: `${productsTrendUp ? '+' : ''}${productsTrend}%`,
+      trendUp: productsTrendUp,
     },
     {
       title: 'Kliyan',
@@ -75,8 +143,17 @@ export const ModernAdminDashboard = ({ products = [], orders = [], customers = [
       subtitle: `${newCustomers} nouvo sa mwa`,
       icon: Users,
       color: 'bg-gradient-to-br from-orange-500 to-orange-600',
-      trend: '+15.3%',
-      trendUp: true,
+      trend: `${customersTrendUp ? '+' : ''}${customersTrend}%`,
+      trendUp: customersTrendUp,
+    },
+    {
+      title: 'Valè Moyèn Kòmand',
+      value: getPriceString(averageOrderValue),
+      subtitle: `${currentMonthOrders} kòmand sa mwa`,
+      icon: TrendingUp,
+      color: 'bg-gradient-to-br from-indigo-500 to-indigo-600',
+      trend: `${avgOrderTrend >= 0 ? '+' : ''}${avgOrderTrend}%`,
+      trendUp: avgOrderTrend >= 0,
     },
   ];
 
@@ -102,7 +179,7 @@ export const ModernAdminDashboard = ({ products = [], orders = [], customers = [
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
         {statsCards.map((stat, index) => {
           const Icon = stat.icon;
           return (

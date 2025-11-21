@@ -26,7 +26,7 @@ export const ModernHeader = ({
   const { getPriceString } = useCurrency();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
-  const categories = ['Tout', 'Electronics', 'Fashion', 'Soulye', 'Kay', 'Bote', 'Espò'];
+  const categories = ['Tout', 'Électronique', 'Mode', 'Chaussures', 'Maison', 'Beauté', 'Sportif'];
 
   return (
     <>
