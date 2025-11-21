@@ -1,6 +1,7 @@
 /**
  * Centralized error handling for the application
  */
+import React from 'react';
 
 export const handleError = (error, context = '') => {
   console.error(`Error in ${context}:`, error);

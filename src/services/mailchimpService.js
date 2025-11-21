@@ -161,10 +161,13 @@ const mailchimpService = {
   },
 
   // Update status in Mailchimp
+  // Note: This requires MD5 hashing which is not available in browser crypto API
+  // For production, this should be done server-side or use a library like crypto-js
   async updateMailchimpStatus(email, status) {
     try {
-      const baseUrl = `https://${MAILCHIMP_SERVER}.api.mailchimp.com/3.0`;
-      const emailHash = require('crypto').createHash('md5').update(email.toLowerCase()).digest('hex');
+      // Use the official Mailchimp Marketing API client instead
+      // This method should use @mailchimp/mailchimp_marketing package
+      throw new Error('updateMailchimpStatus: Use @mailchimp/mailchimp_marketing client instead');
       
       const response = await fetch(`${baseUrl}/lists/${MAILCHIMP_LIST_ID}/members/${emailHash}`, {
         method: 'PATCH',

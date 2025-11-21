@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Search, Menu, X, Home, Package, Users, BarChart3, Settings, Tag, TrendingUp, Heart, Star, MapPin, CreditCard, Truck, Filter, Grid, List, ChevronDown, Plus, Edit, Trash2, Eye, DollarSign, Clock, CheckCircle, XCircle, Bell, AlertCircle, Mail } from 'lucide-react';
+import { ShoppingCart, Search, Menu, X, Home, Package, Users, BarChart3, Settings, Tag, TrendingUp, Heart, Star, MapPin, CreditCard, Truck, Filter, Grid, List, ChevronDown, Plus, Edit, Trash2, Eye, DollarSign, Clock, CheckCircle, XCircle, Bell, AlertCircle, Mail, Shield } from 'lucide-react';
 import { useProducts } from '../hooks/useProducts';
 import { useOrders } from '../hooks/useOrders';
 import { useCustomers } from '../hooks/useCustomers';
@@ -19,8 +19,8 @@ import AboutUsPage from './AboutUsPage';
 import ContactPage from './ContactPage';
 import LoginModal from './LoginModal';
 import CustomerDashboard from './CustomerDashboard';
-import { Shield } from 'lucide-react';
 import { Badge } from './ui/badge';
+import { Button } from './ui/button';
 
 const EcommercePlatform = () => {
   // Détecte automatiquement si on est sur admin.localhost
@@ -498,11 +498,8 @@ const EcommercePlatform = () => {
           meta: { fields: Object.keys(updatedProfile) }
         }]);
 
-      // Update local state
-      setCurrentUser({
-        ...currentUser,
-        profile: { ...currentUser.profile, ...updatedProfile }
-      });
+      // Note: Profile update is handled by AuthContext automatically
+      // No need to update local state manually
 
       alert('Profi mizajou avèk siksè!');
     } catch (error) {

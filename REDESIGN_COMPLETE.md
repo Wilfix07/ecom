@@ -147,7 +147,7 @@ src/
 - ❌ Dashboard statique
 
 **Après:**
-- ✅ Design professionnel type Temu
+- ✅ Design professionnel type DEB
 - ✅ Multiples bannières promotionnelles
 - ✅ Product cards modernes avec hover effects
 - ✅ Dashboard dynamique avec stats réelles

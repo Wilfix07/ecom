@@ -82,7 +82,7 @@ onClick={() => {
 - ✅ Effet hover: shadow-2xl
 - ✅ Cursor pointer
 
-#### Bannière 3: TEMU POPULAR (Rose)
+#### Bannière 3: DEB POPULAR (Rose)
 **Fonctionnalité:**
 - ✅ Reset le filtre de catégorie à "Tout"
 - ✅ Scroll vers le haut de la page

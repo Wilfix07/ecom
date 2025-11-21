@@ -32,7 +32,7 @@ class ErrorBoundary extends React.Component {
             <p className="text-gray-600 mb-6">
               Nou regret erè sa. Tanpri eseye ankò oswa retounen nan paj lakay ou.
             </p>
-            {process.env.NODE_ENV === 'development' && (
+            {import.meta.env.DEV && (
               <div className="mb-4 p-3 bg-red-50 rounded text-left text-xs text-red-700 font-mono overflow-auto">
                 {this.state.error?.toString()}
               </div>

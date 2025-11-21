@@ -193,7 +193,7 @@ export const ModernClientStore = ({
           >
             <div className="relative z-10">
               <Badge className="bg-white/20 text-white mb-3">HOT</Badge>
-              <h3 className="text-3xl font-bold mb-2">TEMU POPULAR</h3>
+              <h3 className="text-3xl font-bold mb-2">DEB POPULAR</h3>
               <p className="text-lg mb-4">Pwodui ki pi popilè</p>
               <Button variant="secondary" size="sm" className="bg-white text-red-600 hover:bg-gray-100">
                 SHOP NOW →
